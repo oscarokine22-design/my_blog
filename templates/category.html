@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ category }} - MyBlog
+{% endblock %}
+
+
+{% block content %}
+
+<main class="posts-container">
+
+
+    <div class="category-header">
+
+        <div class="category-icon">
+            #
+        </div>
+
+        <h1>
+            {{ category }}
+        </h1>
+
+        <p>
+            Posts in the {{ category }} category.
+        </p>
+
+    </div>
+
+
+    {% if posts %}
+
+
+        {% for post in posts %}
+
+            <article class="post-card">
+
+
+                <div class="post-author">
+
+                    <img
+                        src="{{ url_for(
+                            'static',
+                            filename='uploads/' +
+                            post.author.profile_image
+                        ) }}"
+                        alt="Profile Picture"
+                    >
+
+                    <strong>
+
+                        <a
+                            href="{{ url_for(
+                                'profile',
+                                username=post.author.username
+                            ) }}"
+                        >
+                            {{ post.author.username }}
+                        </a>
+
+                    </strong>
+
+                </div>
+
+
+                <h2>
+
+                    <a
+                        href="{{ url_for(
+                            'post',
+                            id=post.id
+                        ) }}"
+                    >
+                        {{ post.title }}
+                    </a>
+
+                </h2>
+
+
+                <p>
+
+                    {{ post.content[:300] }}
+
+                    {% if post.content|length > 300 %}
+                        ...
+                    {% endif %}
+
+                </p>
+
+
+                {% if post.images %}
+
+                    <div class="post-gallery">
+
+                        {% for image in post.images[:4] %}
+
+                            <img
+                                src="{{ url_for(
+                                    'static',
+                                    filename='uploads/' +
+                                    image.filename
+                                ) }}"
+                                class="gallery-image"
+                                alt="Post Image"
+                            >
+
+                        {% endfor %}
+
+                    </div>
+
+                {% elif post.image %}
+
+                    <img
+                        src="{{ url_for(
+                            'static',
+                            filename='uploads/' +
+                            post.image
+                        ) }}"
+                        class="post-image"
+                        alt="Post Image"
+                    >
+
+                {% endif %}
+
+
+                <div class="post-footer">
+
+                    <span>
+                        ❤️ {{ post.likes|length }}
+                    </span>
+
+                    <span>
+                        💬 {{ post.comments|length }}
+                    </span>
+
+                    <a
+                        href="{{ url_for(
+                            'post',
+                            id=post.id
+                        ) }}"
+                        class="read-more"
+                    >
+                        Read More →
+                    </a>
+
+                </div>
+
+
+            </article>
+
+        {% endfor %}
+
+
+    {% else %}
+
+        <div class="empty-posts">
+
+            <div class="empty-icon">
+                #
+            </div>
+
+            <h2>
+                No posts in this category
+            </h2>
+
+            <p>
+                There are currently no posts here.
+            </p>
+
+        </div>
+
+    {% endif %}
+
+
+</main>
+
+{% endblock %}

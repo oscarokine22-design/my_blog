@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}
+Notifications - MyBlog
+{% endblock %}
+
+
+{% block content %}
+
+<main class="notifications-container">
+
+
+    <div class="notifications-header">
+
+        <h1>
+            🔔 Notifications
+        </h1>
+
+        <p>
+            Stay updated with activity on your account.
+        </p>
+
+    </div>
+
+
+    {% if notifications %}
+
+
+        {% for notification in notifications %}
+
+            <div
+                class="notification
+                {% if not notification.is_read %}
+                unread
+                {% endif %}"
+            >
+
+
+                <div class="notification-icon">
+
+                    {% if notification.notification_type == "comment" %}
+
+                        💬
+
+                    {% elif notification.notification_type == "like" %}
+
+                        ❤️
+
+                    {% elif notification.notification_type == "follow" %}
+
+                        👤
+
+                    {% else %}
+
+                        🔔
+
+                    {% endif %}
+
+                </div>
+
+
+                <div class="notification-content">
+
+                    <p>
+                        {{ notification.message }}
+                    </p>
+
+
+                    {% if not notification.is_read %}
+
+                        <a
+                            href="{{ url_for(
+                                'notification_read',
+                                id=notification.id
+                            ) }}"
+                        >
+                            View
+                        </a>
+
+                    {% elif notification.post_id %}
+
+                        <a
+                            href="{{ url_for(
+                                'post',
+                                id=notification.post_id
+                            ) }}"
+                        >
+                            View Post
+                        </a>
+
+                    {% endif %}
+
+                </div>
+
+
+            </div>
+
+        {% endfor %}
+
+
+    {% else %}
+
+        <div class="empty-posts">
+
+            <div class="empty-icon">
+                🔔
+            </div>
+
+            <h2>
+                No notifications
+            </h2>
+
+            <p>
+                You're all caught up!
+            </p>
+
+        </div>
+
+    {% endif %}
+
+
+</main>
+
+{% endblock %}

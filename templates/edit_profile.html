@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}
+Edit Profile - MyBlog
+{% endblock %}
+
+
+{% block content %}
+
+<div class="form-page">
+
+    <div class="form-card">
+
+        <div class="form-header">
+
+            <h1>
+                Edit Profile
+            </h1>
+
+            <p>
+                Update your profile information.
+            </p>
+
+        </div>
+
+
+        <form
+            method="POST"
+            enctype="multipart/form-data"
+            class="post-form"
+        >
+
+
+            <label>
+                Bio
+            </label>
+
+            <textarea
+                name="bio"
+                rows="6"
+                maxlength="500"
+                placeholder="Tell people about yourself..."
+            >{{ current_user.bio }}</textarea>
+
+
+            <label>
+                Profile Picture
+            </label>
+
+            <input
+                type="file"
+                name="profile_image"
+                accept="image/*"
+            >
+
+
+            <button
+                type="submit"
+                class="submit-button"
+            >
+                💾 Save Profile
+            </button>
+
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

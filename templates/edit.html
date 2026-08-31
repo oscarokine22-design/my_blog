@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}
+Edit Post - MyBlog
+{% endblock %}
+
+
+{% block content %}
+
+<div class="form-page">
+
+    <div class="form-card">
+
+        <div class="form-header">
+
+            <h1>
+                Edit Post
+            </h1>
+
+            <p>
+                Update your post.
+            </p>
+
+        </div>
+
+
+        <form
+            method="POST"
+            class="post-form"
+        >
+
+
+            <label>
+                Title
+            </label>
+
+            <input
+                type="text"
+                name="title"
+                value="{{ post.title }}"
+                required
+            >
+
+
+            <label>
+                Category
+            </label>
+
+            <select name="category">
+
+                <option
+                    value=""
+                    {% if not post.category %}
+                    selected
+                    {% endif %}
+                >
+                    No Category
+                </option>
+
+                <option
+                    value="Technology"
+                    {% if post.category == "Technology" %}
+                    selected
+                    {% endif %}
+                >
+                    Technology
+                </option>
+
+                <option
+                    value="Education"
+                    {% if post.category == "Education" %}
+                    selected
+                    {% endif %}
+                >
+                    Education
+                </option>
+
+                <option
+                    value="Psychology"
+                    {% if post.category == "Psychology" %}
+                    selected
+                    {% endif %}
+                >
+                    Psychology
+                </option>
+
+                <option
+                    value="Lifestyle"
+                    {% if post.category == "Lifestyle" %}
+                    selected
+                    {% endif %}
+                >
+                    Lifestyle
+                </option>
+
+                <option
+                    value="Entertainment"
+                    {% if post.category == "Entertainment" %}
+                    selected
+                    {% endif %}
+                >
+                    Entertainment
+                </option>
+
+                <option
+                    value="News"
+                    {% if post.category == "News" %}
+                    selected
+                    {% endif %}
+                >
+                    News
+                </option>
+
+                <option
+                    value="Personal"
+                    {% if post.category == "Personal" %}
+                    selected
+                    {% endif %}
+                >
+                    Personal
+                </option>
+
+                <option
+                    value="Other"
+                    {% if post.category == "Other" %}
+                    selected
+                    {% endif %}
+                >
+                    Other
+                </option>
+
+            </select>
+
+
+            <label>
+                Content
+            </label>
+
+            <textarea
+                name="content"
+                rows="12"
+                required
+            >{{ post.content }}</textarea>
+
+
+            <button
+                type="submit"
+                class="submit-button"
+            >
+                💾 Save Changes
+            </button>
+
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

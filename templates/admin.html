@@ -1,0 +1,431 @@
+{% extends "base.html" %}
+
+{% block title %}
+Admin Panel - MyBlog
+{% endblock %}
+
+{% block content %}
+
+<main class="admin-container">
+
+    <div class="admin-header">
+
+        <div>
+            <h1>
+                🛡️ Admin Panel
+            </h1>
+
+            <p>
+                Manage users, posts and comments on your blog.
+            </p>
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         ADMIN SUMMARY
+    ========================== -->
+
+    <div class="admin-grid">
+
+        <div class="admin-card">
+
+            <h3>
+                👥 Users
+            </h3>
+
+            <div class="dashboard-stat">
+                {{ users|length }}
+            </div>
+
+            <p>
+                Registered users
+            </p>
+
+        </div>
+
+
+        <div class="admin-card">
+
+            <h3>
+                📝 Posts
+            </h3>
+
+            <div class="dashboard-stat">
+                {{ posts|length }}
+            </div>
+
+            <p>
+                Total posts
+            </p>
+
+        </div>
+
+
+        <div class="admin-card">
+
+            <h3>
+                💬 Comments
+            </h3>
+
+            <div class="dashboard-stat">
+                {{ comments|length }}
+            </div>
+
+            <p>
+                Total comments
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         USERS
+    ========================== -->
+
+    <section class="admin-card admin-section">
+
+        <div class="admin-section-header">
+
+            <div>
+
+                <h2>
+                    👥 Users
+                </h2>
+
+                <p>
+                    Manage registered users and administrator access.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        {% if users %}
+
+            <div class="admin-list">
+
+                {% for user in users %}
+
+                    <div class="admin-row">
+
+                        <div class="admin-item-info">
+
+                            <strong>
+                                {{ user.username }}
+                            </strong>
+
+                            {% if user.is_admin %}
+
+                                <span class="admin-badge">
+                                    ADMIN
+                                </span>
+
+                            {% else %}
+
+                                <span class="user-badge">
+                                    USER
+                                </span>
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <div class="admin-actions">
+
+                            {% if user.id == current_user.id %}
+
+                                <span class="current-user-label">
+                                    You
+                                </span>
+
+                            {% else %}
+
+                                <a
+                                    href="{{ url_for('admin_toggle_user', user_id=user.id) }}"
+                                >
+                                    {% if user.is_admin %}
+                                        Remove Admin
+                                    {% else %}
+                                        Make Admin
+                                    {% endif %}
+                                </a>
+
+
+                                <a
+                                    href="{{ url_for('admin_delete_user', user_id=user.id) }}"
+                                    class="delete-link"
+                                    onclick="return confirm('Delete this user permanently? This action cannot be undone.');"
+                                >
+                                    Delete
+                                </a>
+
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <div class="admin-empty">
+                No users found.
+            </div>
+
+        {% endif %}
+
+    </section>
+
+
+    <!-- =========================
+         POSTS
+    ========================== -->
+
+    <section class="admin-card admin-section">
+
+        <div class="admin-section-header">
+
+            <div>
+
+                <h2>
+                    📝 Posts
+                </h2>
+
+                <p>
+                    Review, hide, show or permanently delete posts.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        {% if posts %}
+
+            <div class="admin-list">
+
+                {% for post in posts %}
+
+                    <div class="admin-row">
+
+                        <div class="admin-item-info">
+
+                            <strong>
+                                {{ post.title }}
+                            </strong>
+
+                            <small>
+                                By {{ post.author.username }}
+                            </small>
+
+
+                            {% if post.category %}
+
+                                <span class="post-category">
+                                    {{ post.category }}
+                                </span>
+
+                            {% endif %}
+
+
+                            {% if post.is_hidden %}
+
+                                <span class="admin-badge">
+                                    HIDDEN
+                                </span>
+
+                            {% else %}
+
+                                <span class="visible-badge">
+                                    VISIBLE
+                                </span>
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <div class="admin-actions">
+
+                            <a
+                                href="{{ url_for('post', id=post.id) }}"
+                            >
+                                View
+                            </a>
+
+
+                            <a
+                                href="{{ url_for('admin_hide_post', post_id=post.id) }}"
+                            >
+                                {% if post.is_hidden %}
+                                    Show
+                                {% else %}
+                                    Hide
+                                {% endif %}
+                            </a>
+
+
+                            <a
+                                href="{{ url_for('admin_delete_post', post_id=post.id) }}"
+                                class="delete-link"
+                                onclick="return confirm('Delete this post permanently? This action cannot be undone.');"
+                            >
+                                Delete
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <div class="admin-empty">
+                No posts found.
+            </div>
+
+        {% endif %}
+
+    </section>
+
+
+    <!-- =========================
+         COMMENTS
+    ========================== -->
+
+    <section class="admin-card admin-section">
+
+        <div class="admin-section-header">
+
+            <div>
+
+                <h2>
+                    💬 Comments
+                </h2>
+
+                <p>
+                    Moderate comments and replies.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        {% if comments %}
+
+            <div class="admin-list">
+
+                {% for comment in comments %}
+
+                    <div class="admin-row">
+
+                        <div class="admin-item-info">
+
+                            <strong>
+                                {{ comment.user.username }}
+                            </strong>
+
+
+                            {% if comment.parent_id %}
+
+                                <span class="reply-badge">
+                                    REPLY
+                                </span>
+
+                            {% else %}
+
+                                <span class="comment-badge">
+                                    COMMENT
+                                </span>
+
+                            {% endif %}
+
+
+                            {% if comment.is_hidden %}
+
+                                <span class="admin-badge">
+                                    HIDDEN
+                                </span>
+
+                            {% else %}
+
+                                <span class="visible-badge">
+                                    VISIBLE
+                                </span>
+
+                            {% endif %}
+
+
+                            <p>
+                                {{ comment.content[:120] }}
+
+                                {% if comment.content|length > 120 %}
+                                    ...
+                                {% endif %}
+                            </p>
+
+                        </div>
+
+
+                        <div class="admin-actions">
+
+                            <a
+                                href="{{ url_for('post', id=comment.post_id) }}"
+                            >
+                                View
+                            </a>
+
+
+                            <a
+                                href="{{ url_for('admin_hide_comment', comment_id=comment.id) }}"
+                            >
+                                {% if comment.is_hidden %}
+                                    Show
+                                {% else %}
+                                    Hide
+                                {% endif %}
+                            </a>
+
+
+                            <a
+                                href="{{ url_for('admin_delete_comment', comment_id=comment.id) }}"
+                                class="delete-link"
+                                onclick="return confirm('Delete this comment permanently? This action cannot be undone.');"
+                            >
+                                Delete
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <div class="admin-empty">
+                No comments found.
+            </div>
+
+        {% endif %}
+
+    </section>
+
+</main>
+
+{% endblock %}

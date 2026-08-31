@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}
+Login - MyBlog
+{% endblock %}
+
+
+{% block content %}
+
+<div class="auth-container">
+
+    <div class="auth-card">
+
+        <div class="auth-icon">
+            🔐
+        </div>
+
+        <h1>
+            Welcome Back
+        </h1>
+
+        <p>
+            Login to continue to MyBlog.
+        </p>
+
+
+        <form
+            method="POST"
+            class="auth-form"
+        >
+
+            <label>
+                Username
+            </label>
+
+            <input
+                type="text"
+                name="username"
+                placeholder="Enter your username"
+                required
+            >
+
+
+            <label>
+                Password
+            </label>
+
+            <input
+                type="password"
+                name="password"
+                placeholder="Enter your password"
+                required
+            >
+
+
+            <button type="submit">
+                Login
+            </button>
+
+        </form>
+
+
+        <p class="auth-footer">
+
+            Don't have an account?
+
+            <a href="{{ url_for('register') }}">
+                Register
+            </a>
+
+        </p>
+
+    </div>
+
+</div>
+
+{% endblock %}

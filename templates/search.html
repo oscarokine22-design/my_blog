@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Search - MyBlog</title>
+
+    <link
+        rel="stylesheet"
+        href="/static/style.css"
+    >
+
+</head>
+
+
+<body>
+
+
+<!-- =========================
+     HEADER
+========================= -->
+
+<header class="site-header">
+
+    <div class="header-inner">
+
+
+        <a href="/" class="logo">
+
+            <span class="logo-icon">
+                ✦
+            </span>
+
+            MyBlog
+
+        </a>
+
+
+        <nav class="main-nav">
+
+            <a href="/">
+                Home
+            </a>
+
+
+            {% if current_user.is_authenticated %}
+
+                <a href="/create">
+                    Create Post
+                </a>
+
+
+                <a
+                    href="/profile/{{ current_user.username }}"
+                >
+                    Profile
+                </a>
+
+
+                <a href="/logout">
+                    Logout
+                </a>
+
+            {% else %}
+
+                <a href="/login">
+                    Login
+                </a>
+
+
+                <a href="/register">
+                    Register
+                </a>
+
+            {% endif %}
+
+        </nav>
+
+
+    </div>
+
+</header>
+
+
+
+<!-- =========================
+     SEARCH PAGE
+========================= -->
+
+<main class="search-page">
+
+
+    <div class="search-header">
+
+
+        <h1>
+            Search MyBlog
+        </h1>
+
+
+        <form
+            action="/search"
+            method="GET"
+            class="search-page-form"
+        >
+
+            <input
+                type="search"
+                name="q"
+                value="{{ query }}"
+                placeholder="Search posts..."
+                required
+            >
+
+
+            <button type="submit">
+                🔍 Search
+            </button>
+
+        </form>
+
+
+    </div>
+
+
+
+    {% if query %}
+
+
+        <div class="search-results-heading">
+
+            <h2>
+                Search results for:
+            </h2>
+
+            <p>
+                "{{ query }}"
+            </p>
+
+        </div>
+
+
+
+        {% if posts %}
+
+
+            <div class="search-results">
+
+
+                {% for post in posts %}
+
+
+                    <article class="post-card">
+
+
+                        <!-- AUTHOR -->
+
+                        <div class="post-author">
+
+
+                            <img
+                                src="/static/uploads/{{ post.author.profile_image }}"
+                                width="50"
+                                height="50"
+                                alt="Profile Picture"
+                            >
+
+
+                            <div>
+
+                                <strong>
+
+                                    <a
+                                        href="/profile/{{ post.author.username }}"
+                                    >
+                                        {{ post.author.username }}
+                                    </a>
+
+                                </strong>
+
+                            </div>
+
+
+                        </div>
+
+
+
+                        <!-- TITLE -->
+
+                        <h2>
+
+                            <a
+                                href="/post/{{ post.id }}"
+                            >
+                                {{ post.title }}
+                            </a>
+
+                        </h2>
+
+
+
+                        <!-- CONTENT -->
+
+                        <p>
+
+                            {{ post.content[:300] }}
+
+                            {% if post.content|length > 300 %}
+
+                                ...
+
+                            {% endif %}
+
+                        </p>
+
+
+
+                        <!-- IMAGES -->
+
+                        {% if post.images %}
+
+
+                            <div class="post-gallery">
+
+
+                                {% for image in post.images[:4] %}
+
+
+                                    <img
+                                        src="/static/uploads/{{ image.filename }}"
+                                        class="gallery-image"
+                                        alt="Post Image"
+                                    >
+
+
+                                {% endfor %}
+
+
+                            </div>
+
+
+                        {% elif post.image %}
+
+
+                            <img
+                                src="/static/uploads/{{ post.image }}"
+                                class="post-image"
+                                alt="Post Image"
+                            >
+
+
+                        {% endif %}
+
+
+
+                        <!-- VIDEO -->
+
+                        {% if post.video %}
+
+
+                            <video
+                                class="post-video"
+                                controls
+                            >
+
+                                <source
+                                    src="/static/uploads/{{ post.video }}"
+                                    type="video/mp4"
+                                >
+
+                                Your browser does not support video.
+
+                            </video>
+
+
+                        {% endif %}
+
+
+
+                        <!-- FOOTER -->
+
+                        <div class="post-footer">
+
+
+                            <span>
+                                ❤️ {{ post.likes|length }}
+                            </span>
+
+
+                            <span>
+                                💬 {{ post.comments|length }}
+                            </span>
+
+
+                            <a
+                                href="/post/{{ post.id }}"
+                                class="read-more"
+                            >
+                                Read More →
+                            </a>
+
+
+                        </div>
+
+
+                    </article>
+
+
+                {% endfor %}
+
+
+            </div>
+
+
+        {% else %}
+
+
+            <!-- NO RESULTS -->
+
+            <div class="no-results">
+
+
+                <div class="no-results-icon">
+                    🔍
+                </div>
+
+
+                <h2>
+                    No posts found
+                </h2>
+
+
+                <p>
+                    We couldn't find any posts containing:
+                </p>
+
+
+                <strong>
+                    "{{ query }}"
+                </strong>
+
+
+                <br><br>
+
+
+                <a href="/">
+                    ← Back to Home
+                </a>
+
+
+            </div>
+
+
+        {% endif %}
+
+
+    {% else %}
+
+
+        <div class="no-results">
+
+
+            <div class="no-results-icon">
+                🔍
+            </div>
+
+
+            <h2>
+                Search MyBlog
+            </h2>
+
+
+            <p>
+                Enter a word or phrase to find posts.
+            </p>
+
+
+        </div>
+
+
+    {% endif %}
+
+
+</main>
+
+
+</body>
+
+</html>
