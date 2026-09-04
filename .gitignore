@@ -5,4 +5,4 @@ blog.db
 .venv/
 venv/
 static/uploads/*
-!static/uploads/.gitkeep
+!static/uploads/.gitkeepbackups/
