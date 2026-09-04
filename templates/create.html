@@ -1,156 +1,328 @@
 {% extends "base.html" %}
 
-{% block title %}
-Create Post - MyBlog
-{% endblock %}
-
+{% block title %}Create Post - MyBlog{% endblock %}
 
 {% block content %}
 
-<div class="form-page">
+<div class="create-page">
 
-    <div class="form-card">
-
-        <div class="form-header">
-
-            <h1>
-                Create a New Post
-            </h1>
-
-            <p>
-                Share your thoughts, stories, pictures and videos.
-            </p>
-
+    <div class="create-header">
+        <div>
+            <h1>Create a New Post</h1>
+            <p>Share your thoughts, stories, pictures and videos with the world.</p>
         </div>
 
-
-        <form
-            method="POST"
-            enctype="multipart/form-data"
-            class="post-form"
-        >
+        <a href="{{ url_for('home') }}" class="back-home-button">
+            ← Back Home
+        </a>
+    </div>
 
 
-            <label>
-                Title
-            </label>
+    <div class="create-layout">
 
-            <input
-                type="text"
-                name="title"
-                placeholder="Enter your post title"
-                required
+        <section class="create-card">
+
+            <form
+                action="{{ url_for('create') }}"
+                method="POST"
+                enctype="multipart/form-data"
             >
 
+                <div class="form-group">
+                    <label for="title">Post Title</label>
 
-            <label>
-                Category
-            </label>
-
-            <select name="category">
-
-                <option value="">
-                    Select a category
-                </option>
-
-                <option value="Technology">
-                    Technology
-                </option>
-
-                <option value="Education">
-                    Education
-                </option>
-
-                <option value="Psychology">
-                    Psychology
-                </option>
-
-                <option value="Lifestyle">
-                    Lifestyle
-                </option>
-
-                <option value="Entertainment">
-                    Entertainment
-                </option>
-
-                <option value="News">
-                    News
-                </option>
-
-                <option value="Personal">
-                    Personal
-                </option>
-
-                <option value="Other">
-                    Other
-                </option>
-
-            </select>
+                    <input
+                        type="text"
+                        id="title"
+                        name="title"
+                        placeholder="Enter your post title"
+                        maxlength="200"
+                        required
+                    >
+                </div>
 
 
-            <label>
-                Content
-            </label>
+                <div class="form-group">
+                    <label for="category">Category</label>
 
-            <textarea
-                name="content"
-                rows="10"
-                placeholder="Write your story..."
-                required
-            ></textarea>
+                    <select
+                        id="category"
+                        name="category"
+                        required
+                    >
+                        <option value="">Select a category</option>
+                        <option value="Technology">Technology</option>
+                        <option value="Education">Education</option>
+                        <option value="Lifestyle">Lifestyle</option>
+                        <option value="Health">Health</option>
+                        <option value="Psychology">Psychology</option>
+                        <option value="Travel">Travel</option>
+                        <option value="Business">Business</option>
+                        <option value="Entertainment">Entertainment</option>
+                        <option value="Sports">Sports</option>
+                        <option value="News">News</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
 
 
-            <div class="upload-section">
+                <div class="form-group">
+                    <label for="content">Content</label>
 
-                <h3>
-                    📷 Add Images
-                </h3>
+                    <textarea
+                        id="content"
+                        name="content"
+                        placeholder="Write your story..."
+                        required
+                    ></textarea>
+
+                    <div class="character-counter">
+                        <span id="characterCount">0</span> characters
+                    </div>
+                </div>
+
+
+                <div class="upload-section">
+
+                    <div class="upload-heading">
+                        <span class="upload-icon">📷</span>
+
+                        <div>
+                            <h3>Add Images</h3>
+                            <p>Select one or multiple images for your post.</p>
+                        </div>
+                    </div>
+
+
+                    <label for="images" class="upload-box">
+
+                        <span class="upload-box-icon">
+                            📁
+                        </span>
+
+                        <strong>
+                            Choose Images
+                        </strong>
+
+                        <small>
+                            JPG, JPEG, PNG, GIF or WEBP
+                        </small>
+
+                    </label>
+
+                    <input
+                        type="file"
+                        id="images"
+                        name="images"
+                        accept=".jpg,.jpeg,.png,.gif,.webp,image/*"
+                        multiple
+                        hidden
+                    >
+
+                    <div
+                        id="imagePreview"
+                        class="image-preview"
+                    ></div>
+
+                </div>
+
+
+                <div class="upload-section video-upload">
+
+                    <div class="upload-heading">
+
+                        <span class="upload-icon">🎥</span>
+
+                        <div>
+                            <h3>Add a Video</h3>
+                            <p>Optional video for your post.</p>
+                        </div>
+
+                    </div>
+
+
+                    <label for="video" class="upload-box">
+
+                        <span class="upload-box-icon">
+                            🎬
+                        </span>
+
+                        <strong>
+                            Choose Video
+                        </strong>
+
+                        <small>
+                            MP4, WEBM, OGG or MOV
+                        </small>
+
+                    </label>
+
+                    <input
+                        type="file"
+                        id="video"
+                        name="video"
+                        accept=".mp4,.webm,.ogg,.mov,video/*"
+                        hidden
+                    >
+
+                    <div
+                        id="videoName"
+                        class="selected-file"
+                    ></div>
+
+                </div>
+
+
+                <div class="create-actions">
+
+                    <a
+                        href="{{ url_for('home') }}"
+                        class="cancel-button"
+                    >
+                        Cancel
+                    </a>
+
+                    <button
+                        type="submit"
+                        class="publish-button"
+                    >
+                        🚀 Publish Post
+                    </button>
+
+                </div>
+
+            </form>
+
+        </section>
+
+
+        <aside class="create-sidebar">
+
+            <div class="writing-tip-card">
+
+                <div class="tip-icon">
+                    ✨
+                </div>
+
+                <h3>Share Your Story</h3>
 
                 <p>
-                    You can select multiple images.
+                    Write something useful, interesting or inspiring.
+                    Your ideas can help someone else.
                 </p>
-
-                <input
-                    type="file"
-                    name="images"
-                    accept="image/*"
-                    multiple
-                >
 
             </div>
 
 
-            <div class="upload-section">
+            <div class="writing-tip-card">
 
-                <h3>
-                    🎥 Add Video
-                </h3>
+                <div class="tip-icon">
+                    💡
+                </div>
 
-                <p>
-                    MP4, WebM, OGG or MOV.
-                </p>
+                <h3>Tips for a Great Post</h3>
 
-                <input
-                    type="file"
-                    name="video"
-                    accept="video/*"
-                >
+                <ul>
+                    <li>Use a clear and interesting title.</li>
+                    <li>Break long content into paragraphs.</li>
+                    <li>Add images when they help explain your story.</li>
+                    <li>Choose the category that best fits your post.</li>
+                </ul>
 
             </div>
 
 
-            <button
-                type="submit"
-                class="submit-button"
-            >
-                🚀 Publish Post
-            </button>
+            <div class="writing-tip-card">
 
+                <div class="tip-icon">
+                    🔒
+                </div>
 
-        </form>
+                <h3>Before You Publish</h3>
+
+                <p>
+                    Make sure your content is accurate and respectful.
+                    Once you're ready, hit Publish Post.
+                </p>
+
+            </div>
+
+        </aside>
 
     </div>
 
 </div>
+
+
+<script>
+
+const contentBox = document.getElementById("content");
+const characterCount = document.getElementById("characterCount");
+
+contentBox.addEventListener("input", function () {
+
+    characterCount.textContent = this.value.length;
+
+});
+
+
+const imageInput = document.getElementById("images");
+const imagePreview = document.getElementById("imagePreview");
+
+imageInput.addEventListener("change", function () {
+
+    imagePreview.innerHTML = "";
+
+    const files = Array.from(this.files);
+
+    files.forEach(function (file) {
+
+        if (!file.type.startsWith("image/")) {
+            return;
+        }
+
+        const reader = new FileReader();
+
+        reader.onload = function (event) {
+
+            const previewItem = document.createElement("div");
+
+            previewItem.className = "preview-item";
+
+            previewItem.innerHTML = `
+                <img src="${event.target.result}" alt="Image preview">
+                <span>${file.name}</span>
+            `;
+
+            imagePreview.appendChild(previewItem);
+
+        };
+
+        reader.readAsDataURL(file);
+
+    });
+
+});
+
+
+const videoInput = document.getElementById("video");
+const videoName = document.getElementById("videoName");
+
+videoInput.addEventListener("change", function () {
+
+    if (this.files.length > 0) {
+
+        videoName.innerHTML =
+            "🎥 " + this.files[0].name;
+
+    } else {
+
+        videoName.innerHTML = "";
+
+    }
+
+});
+
+</script>
 
 {% endblock %}

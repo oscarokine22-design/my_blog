@@ -1,77 +1,143 @@
 {% extends "base.html" %}
 
-{% block title %}
-Register - MyBlog
-{% endblock %}
-
+{% block title %}Create Account - MyBlog{% endblock %}
 
 {% block content %}
 
-<div class="auth-container">
+<div class="auth-page">
 
     <div class="auth-card">
 
-        <div class="auth-icon">
-            🚀
+        <div class="auth-logo">
+            <div class="auth-logo-icon">✦</div>
+            <span>MyBlog</span>
         </div>
 
-        <h1>
-            Create Account
-        </h1>
 
-        <p>
-            Join the MyBlog community.
-        </p>
+        <div class="auth-header">
+
+            <h1>Create your account</h1>
+
+            <p>
+                Join MyBlog and start sharing your ideas with the world.
+            </p>
+
+        </div>
 
 
         <form
+            action="{{ url_for('register') }}"
             method="POST"
             class="auth-form"
         >
 
-            <label>
-                Username
-            </label>
+            <div class="auth-form-group">
 
-            <input
-                type="text"
-                name="username"
-                placeholder="Choose a username"
-                required
+                <label for="username">
+                    Username
+                </label>
+
+                <div class="auth-input-wrapper">
+
+                    <span>👤</span>
+
+                    <input
+                        type="text"
+                        id="username"
+                        name="username"
+                        placeholder="Choose a username"
+                        autocomplete="username"
+                        required
+                    >
+
+                </div>
+
+            </div>
+
+
+            <div class="auth-form-group">
+
+                <label for="password">
+                    Password
+                </label>
+
+                <div class="auth-input-wrapper">
+
+                    <span>🔒</span>
+
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="Create a password"
+                        autocomplete="new-password"
+                        required
+                    >
+
+                    <button
+                        type="button"
+                        class="password-toggle"
+                        onclick="togglePassword()"
+                    >
+                        👁️
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <button
+                type="submit"
+                class="auth-submit"
             >
-
-
-            <label>
-                Password
-            </label>
-
-            <input
-                type="password"
-                name="password"
-                placeholder="Create a password"
-                required
-            >
-
-
-            <button type="submit">
                 Create Account
             </button>
 
         </form>
 
 
-        <p class="auth-footer">
+        <div class="auth-divider">
+            <span>Already have an account?</span>
+        </div>
 
-            Already have an account?
 
-            <a href="{{ url_for('login') }}">
-                Login
-            </a>
+        <a
+            href="{{ url_for('login') }}"
+            class="auth-secondary-button"
+        >
+            Login to MyBlog
+        </a>
 
+
+        <p class="auth-footer-text">
+            By creating an account, you agree to use MyBlog respectfully.
         </p>
 
     </div>
 
 </div>
+
+
+<script>
+
+function togglePassword() {
+
+    const password =
+        document.getElementById("password");
+
+    if (password.type === "password") {
+
+        password.type = "text";
+
+    } else {
+
+        password.type = "password";
+
+    }
+
+}
+
+</script>
 
 {% endblock %}
