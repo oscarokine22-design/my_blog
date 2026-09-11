@@ -10,7 +10,17 @@ body {
     margin: 0;
     padding: 0;
     font-family: Arial, Helvetica, sans-serif;
-    background: #eef2ff;
+
+    background: linear-gradient(
+        135deg,
+        #6b71d7 0%,
+        #6b67cf 35%,
+        #705abd 65%,
+        #7552ac 100%
+    );
+
+    background-attachment: fixed;
+
     color: #28304d;
     line-height: 1.6;
 }
@@ -110,11 +120,15 @@ button {
 .hero {
     background: linear-gradient(
         135deg,
-        #e5eaff,
-        #edf0ff,
-        #e5edff
+        #6874dc,
+        #705fc5,
+        #7552ac
     );
+
     padding: 75px 20px;
+    color: #ffffff;
+    border-radius: 0 0 28px 28px;
+    overflow: hidden;
 }
 
 .hero-content {
@@ -127,13 +141,13 @@ button {
     margin: 0 0 18px;
     font-size: clamp(34px, 6vw, 58px);
     line-height: 1.1;
-    color: #3d4b82;
+    color: #ffffff;
 }
 
 .hero p {
     max-width: 650px;
     margin: 20px auto;
-    color: #606b88;
+    color: #ffffff;
     font-size: 18px;
 }
 
@@ -201,7 +215,7 @@ button:hover,
 
 .section-title {
     margin-bottom: 25px;
-    color: #3d4b82;
+    color: #ffffff;
 }
 
 
