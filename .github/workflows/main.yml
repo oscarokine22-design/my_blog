@@ -1,0 +1,19 @@
+name: Deploy MyBlog to PythonAnywhere
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to PythonAnywhere
+        env:
+          PA_API_TOKEN: ${{ secrets.PYTHONANYWHERE_API_TOKEN }}
+        run: |
+          curl -X POST \
+            -H "Authorization: Token $PA_API_TOKEN" \
+            https://www.pythonanywhere.com/api/v0/user/Oscar233/webapps/Oscar233.pythonanywhere.com/reload/
