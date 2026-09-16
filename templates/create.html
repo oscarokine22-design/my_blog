@@ -1,253 +1,382 @@
 {% extends "base.html" %}
 
-{% block title %}Create Post - MyBlog{% endblock %}
-
 {% block content %}
 
-<div class="create-page">
+<div class="form-container">
 
-    <div class="create-header">
-        <div>
-            <h1>Create a New Post</h1>
-            <p>Share your thoughts, stories, pictures and videos with the world.</p>
+    <div class="form-card create-post-card">
+
+        <div class="create-header">
+            <div>
+                <span class="create-badge">✦ MyBlog</span>
+
+                <h1>Create a New Post</h1>
+
+                <p>
+                    Share your thoughts, stories, pictures,
+                    videos or research with the community.
+                </p>
+            </div>
         </div>
 
-        <a href="{{ url_for('home') }}" class="back-home-button">
-            ← Back Home
-        </a>
-    </div>
+
+        <form method="POST"
+              enctype="multipart/form-data">
 
 
-    <div class="create-layout">
+            <!-- POST TYPE -->
 
-        <section class="create-card">
+            <div class="form-group">
 
-            <form
-                action="{{ url_for('create') }}"
-                method="POST"
-                enctype="multipart/form-data"
+                <label for="post_type">
+                    What are you posting?
+                </label>
+
+                <select
+                    name="post_type"
+                    id="post_type"
+                    onchange="toggleResearchFields()"
+                >
+
+                    <option value="regular">
+                        Regular Post
+                    </option>
+
+                    <option value="research">
+                        🔬 Research Article
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- TITLE -->
+
+            <div class="form-group">
+
+                <label for="title">
+                    Title
+                </label>
+
+                <input
+                    type="text"
+                    id="title"
+                    name="title"
+                    placeholder="Enter your post title"
+                    maxlength="200"
+                    required
+                >
+
+            </div>
+
+
+            <!-- CATEGORY -->
+
+            <div class="form-group">
+
+                <label for="category">
+                    Category
+                </label>
+
+                <select
+                    name="category"
+                    id="category"
+                >
+
+                    <option value="">
+                        Select a category
+                    </option>
+
+                    <option value="Education">
+                        Education
+                    </option>
+
+                    <option value="Technology">
+                        Technology
+                    </option>
+
+                    <option value="Health">
+                        Health
+                    </option>
+
+                    <option value="Psychology">
+                        Psychology
+                    </option>
+
+                    <option value="Research">
+                        Research
+                    </option>
+
+                    <option value="Science">
+                        Science
+                    </option>
+
+                    <option value="Lifestyle">
+                        Lifestyle
+                    </option>
+
+                    <option value="News">
+                        News
+                    </option>
+
+                    <option value="Other">
+                        Other
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- RESEARCH SECTION -->
+
+            <div
+                id="research-fields"
+                class="research-fields"
+                style="display:none;"
             >
 
+                <div class="research-heading">
+
+                    <span class="research-icon">
+                        🔬
+                    </span>
+
+                    <div>
+
+                        <h3>
+                            Research Article Information
+                        </h3>
+
+                        <p>
+                            Add information about the research
+                            so readers can understand and reference it.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
                 <div class="form-group">
-                    <label for="title">Post Title</label>
+
+                    <label for="abstract">
+                        Abstract
+                    </label>
+
+                    <textarea
+                        name="abstract"
+                        id="abstract"
+                        placeholder="Enter the research abstract..."
+                        rows="6"
+                    ></textarea>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="research_authors">
+                        Authors
+                    </label>
 
                     <input
                         type="text"
-                        id="title"
-                        name="title"
-                        placeholder="Enter your post title"
-                        maxlength="200"
-                        required
+                        name="research_authors"
+                        id="research_authors"
+                        placeholder="e.g. John Doe, Jane Smith"
                     >
+
+                </div>
+
+
+                <div class="research-row">
+
+                    <div class="form-group">
+
+                        <label for="journal">
+                            Journal / Publication
+                        </label>
+
+                        <input
+                            type="text"
+                            name="journal"
+                            id="journal"
+                            placeholder="Journal name"
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="publication_year">
+                            Publication Year
+                        </label>
+
+                        <input
+                            type="text"
+                            name="publication_year"
+                            id="publication_year"
+                            placeholder="2026"
+                        >
+
+                    </div>
+
                 </div>
 
 
                 <div class="form-group">
-                    <label for="category">Category</label>
 
-                    <select
-                        id="category"
-                        name="category"
-                        required
+                    <label for="doi">
+                        DOI
+                    </label>
+
+                    <input
+                        type="text"
+                        name="doi"
+                        id="doi"
+                        placeholder="e.g. 10.1000/example"
                     >
-                        <option value="">Select a category</option>
-                        <option value="Technology">Technology</option>
-                        <option value="Education">Education</option>
-                        <option value="Lifestyle">Lifestyle</option>
-                        <option value="Health">Health</option>
-                        <option value="Psychology">Psychology</option>
-                        <option value="Travel">Travel</option>
-                        <option value="Business">Business</option>
-                        <option value="Entertainment">Entertainment</option>
-                        <option value="Sports">Sports</option>
-                        <option value="News">News</option>
-                        <option value="Other">Other</option>
-                    </select>
+
                 </div>
 
 
                 <div class="form-group">
-                    <label for="content">Content</label>
 
-                    <textarea
-                        id="content"
-                        name="content"
-                        placeholder="Write your story..."
-                        required
-                    ></textarea>
+                    <label for="external_link">
+                        Article Link
+                    </label>
 
-                    <div class="character-counter">
-                        <span id="characterCount">0</span> characters
-                    </div>
+                    <input
+                        type="url"
+                        name="external_link"
+                        id="external_link"
+                        placeholder="https://..."
+                    >
+
                 </div>
 
 
-                <div class="upload-section">
+                <div class="form-group">
 
-                    <div class="upload-heading">
-                        <span class="upload-icon">📷</span>
-
-                        <div>
-                            <h3>Add Images</h3>
-                            <p>Select one or multiple images for your post.</p>
-                        </div>
-                    </div>
-
-
-                    <label for="images" class="upload-box">
-
-                        <span class="upload-box-icon">
-                            📁
-                        </span>
-
-                        <strong>
-                            Choose Images
-                        </strong>
-
-                        <small>
-                            JPG, JPEG, PNG, GIF or WEBP
-                        </small>
-
+                    <label for="research_file">
+                        Research PDF
                     </label>
 
                     <input
                         type="file"
-                        id="images"
-                        name="images"
-                        accept=".jpg,.jpeg,.png,.gif,.webp,image/*"
-                        multiple
-                        hidden
+                        name="research_file"
+                        id="research_file"
+                        accept=".pdf,application/pdf"
                     >
 
-                    <div
-                        id="imagePreview"
-                        class="image-preview"
-                    ></div>
+                    <small>
+                        Upload the full research article as a PDF.
+                    </small>
 
                 </div>
 
-
-                <div class="upload-section video-upload">
-
-                    <div class="upload-heading">
-
-                        <span class="upload-icon">🎥</span>
-
-                        <div>
-                            <h3>Add a Video</h3>
-                            <p>Optional video for your post.</p>
-                        </div>
-
-                    </div>
+            </div>
 
 
-                    <label for="video" class="upload-box">
+            <!-- CONTENT -->
 
-                        <span class="upload-box-icon">
-                            🎬
-                        </span>
+            <div class="form-group">
 
-                        <strong>
-                            Choose Video
-                        </strong>
+                <label for="content">
+                    Content
+                </label>
 
-                        <small>
-                            MP4, WEBM, OGG or MOV
-                        </small>
+                <textarea
+                    name="content"
+                    id="content"
+                    placeholder="Write your story..."
+                    rows="10"
+                    required
+                ></textarea>
 
-                    </label>
-
-                    <input
-                        type="file"
-                        id="video"
-                        name="video"
-                        accept=".mp4,.webm,.ogg,.mov,video/*"
-                        hidden
-                    >
-
-                    <div
-                        id="videoName"
-                        class="selected-file"
-                    ></div>
-
-                </div>
+            </div>
 
 
-                <div class="create-actions">
+            <!-- IMAGES -->
 
-                    <a
-                        href="{{ url_for('home') }}"
-                        class="cancel-button"
-                    >
-                        Cancel
-                    </a>
+            <div class="upload-section">
 
-                    <button
-                        type="submit"
-                        class="publish-button"
-                    >
-                        🚀 Publish Post
-                    </button>
-
-                </div>
-
-            </form>
-
-        </section>
-
-
-        <aside class="create-sidebar">
-
-            <div class="writing-tip-card">
-
-                <div class="tip-icon">
-                    ✨
-                </div>
-
-                <h3>Share Your Story</h3>
+                <h3>
+                    📷 Add Images
+                </h3>
 
                 <p>
-                    Write something useful, interesting or inspiring.
-                    Your ideas can help someone else.
+                    You can select multiple images.
                 </p>
 
-            </div>
-
-
-            <div class="writing-tip-card">
-
-                <div class="tip-icon">
-                    💡
-                </div>
-
-                <h3>Tips for a Great Post</h3>
-
-                <ul>
-                    <li>Use a clear and interesting title.</li>
-                    <li>Break long content into paragraphs.</li>
-                    <li>Add images when they help explain your story.</li>
-                    <li>Choose the category that best fits your post.</li>
-                </ul>
+                <input
+                    type="file"
+                    name="images"
+                    accept="image/*"
+                    multiple
+                >
 
             </div>
 
 
-            <div class="writing-tip-card">
+            <!-- SINGLE IMAGE -->
 
-                <div class="tip-icon">
-                    🔒
-                </div>
+            <div class="upload-section">
 
-                <h3>Before You Publish</h3>
+                <h3>
+                    🖼️ Featured Image
+                </h3>
 
-                <p>
-                    Make sure your content is accurate and respectful.
-                    Once you're ready, hit Publish Post.
-                </p>
+                <input
+                    type="file"
+                    name="image"
+                    accept="image/*"
+                >
 
             </div>
 
-        </aside>
+
+            <!-- VIDEO -->
+
+            <div class="upload-section">
+
+                <h3>
+                    🎥 Add Video
+                </h3>
+
+                <input
+                    type="file"
+                    name="video"
+                    accept="video/*"
+                >
+
+            </div>
+
+
+            <!-- SUBMIT -->
+
+            <div class="create-actions">
+
+                <a
+                    href="{{ url_for('home') }}"
+                    class="cancel-button"
+                >
+                    Cancel
+                </a>
+
+                <button
+                    type="submit"
+                    class="publish-button"
+                >
+                    🚀 Publish Post
+                </button>
+
+            </div>
+
+        </form>
 
     </div>
 
@@ -256,72 +385,25 @@
 
 <script>
 
-const contentBox = document.getElementById("content");
-const characterCount = document.getElementById("characterCount");
+function toggleResearchFields() {
 
-contentBox.addEventListener("input", function () {
+    const type =
+        document.getElementById("post_type").value;
 
-    characterCount.textContent = this.value.length;
+    const fields =
+        document.getElementById("research-fields");
 
-});
+    if (type === "research") {
 
-
-const imageInput = document.getElementById("images");
-const imagePreview = document.getElementById("imagePreview");
-
-imageInput.addEventListener("change", function () {
-
-    imagePreview.innerHTML = "";
-
-    const files = Array.from(this.files);
-
-    files.forEach(function (file) {
-
-        if (!file.type.startsWith("image/")) {
-            return;
-        }
-
-        const reader = new FileReader();
-
-        reader.onload = function (event) {
-
-            const previewItem = document.createElement("div");
-
-            previewItem.className = "preview-item";
-
-            previewItem.innerHTML = `
-                <img src="${event.target.result}" alt="Image preview">
-                <span>${file.name}</span>
-            `;
-
-            imagePreview.appendChild(previewItem);
-
-        };
-
-        reader.readAsDataURL(file);
-
-    });
-
-});
-
-
-const videoInput = document.getElementById("video");
-const videoName = document.getElementById("videoName");
-
-videoInput.addEventListener("change", function () {
-
-    if (this.files.length > 0) {
-
-        videoName.innerHTML =
-            "🎥 " + this.files[0].name;
+        fields.style.display = "block";
 
     } else {
 
-        videoName.innerHTML = "";
+        fields.style.display = "none";
 
     }
 
-});
+}
 
 </script>
 

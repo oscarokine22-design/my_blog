@@ -2560,3 +2560,277 @@ button:hover,
     }
 
 }
+
+
+/* =========================
+   CREATE POST
+========================= */
+
+.create-post-card {
+    max-width: 850px;
+    margin: 0 auto;
+}
+
+.create-header {
+    margin-bottom: 30px;
+}
+
+.create-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    background: #eee9ff;
+    color: #6554c0;
+    font-size: 13px;
+    font-weight: 800;
+    margin-bottom: 12px;
+}
+
+.create-post-card h1 {
+    font-size: 34px;
+    margin: 0 0 8px;
+    color: #403568;
+}
+
+.create-header p {
+    margin: 0;
+    color: #625b7e;
+    font-size: 16px;
+}
+
+
+/* =========================
+   RESEARCH ARTICLE
+========================= */
+
+.research-fields {
+    background: #f7f5ff;
+    border: 1px solid #ded7f5;
+    border-radius: 14px;
+    padding: 22px;
+    margin: 25px 0;
+}
+
+.research-heading {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 22px;
+}
+
+.research-icon {
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #eee9ff;
+    border-radius: 12px;
+    font-size: 20px;
+}
+
+.research-heading h3 {
+    margin: 0 0 4px;
+    color: #403568;
+}
+
+.research-heading p {
+    margin: 0;
+    color: #625b7e;
+    font-size: 14px;
+}
+
+.research-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 15px;
+}
+
+.research-fields small {
+    display: block;
+    margin-top: 6px;
+    color: #756e8d;
+}
+
+
+/* =========================
+   UPLOAD SECTIONS
+========================= */
+
+.upload-section {
+    margin-top: 22px;
+    padding: 18px;
+    background: #faf9ff;
+    border: 1px dashed #d5cdec;
+    border-radius: 12px;
+}
+
+.upload-section h3 {
+    margin: 0 0 5px;
+    color: #403568;
+    font-size: 16px;
+}
+
+.upload-section p {
+    margin: 0 0 12px;
+    color: #756e8d;
+    font-size: 14px;
+}
+
+.upload-section input[type="file"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #d8d0ef;
+    border-radius: 8px;
+    background: #ffffff;
+}
+
+
+/* =========================
+   CREATE ACTIONS
+========================= */
+
+.create-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #eeeaf7;
+}
+
+.cancel-button {
+    padding: 11px 18px;
+    border-radius: 10px;
+    background: #eee9ff;
+    color: #5141a5;
+    font-weight: 700;
+}
+
+.cancel-button:hover {
+    background: #e3dcff;
+}
+
+.publish-button {
+    padding: 12px 22px;
+    border-radius: 10px;
+    background: #6554c0;
+    color: white;
+    border: none;
+    font-weight: 800;
+}
+
+.publish-button:hover {
+    background: #5141a5;
+}
+
+
+/* =========================
+   RESEARCH POST DISPLAY
+========================= */
+
+.research-label {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 20px;
+    background: #eee9ff;
+    color: #6554c0;
+    font-size: 12px;
+    font-weight: 800;
+    margin-bottom: 10px;
+}
+
+.research-info-card {
+    margin: 22px 0;
+    padding: 22px;
+    background: #f7f5ff;
+    border: 1px solid #ded7f5;
+    border-radius: 14px;
+}
+
+.research-info-card h3 {
+    margin-top: 0;
+    color: #403568;
+}
+
+.research-meta {
+    display: grid;
+    gap: 10px;
+}
+
+.research-meta-item {
+    color: #4f4965;
+}
+
+.research-meta-item strong {
+    color: #403568;
+}
+
+.research-abstract {
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid #e5def5;
+}
+
+.research-abstract p {
+    color: #55506a;
+    white-space: pre-wrap;
+}
+
+.research-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.research-links a {
+    display: inline-block;
+    padding: 9px 14px;
+    border-radius: 9px;
+    background: #6554c0;
+    color: white;
+    font-weight: 700;
+}
+
+.research-links a:hover {
+    background: #5141a5;
+}
+
+
+/* =========================
+   MOBILE RESEARCH
+========================= */
+
+@media (max-width: 600px) {
+
+    .create-post-card h1 {
+        font-size: 28px;
+    }
+
+    .research-row {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+
+    .research-fields {
+        padding: 16px;
+    }
+
+    .research-heading {
+        gap: 10px;
+    }
+
+    .create-actions {
+        flex-direction: column-reverse;
+        align-items: stretch;
+    }
+
+    .create-actions a,
+    .create-actions button {
+        width: 100%;
+        text-align: center;
+    }
+
+}

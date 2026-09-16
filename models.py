@@ -120,6 +120,51 @@ class Post(db.Model):
         db.String(100)
     )
 
+    # =========================
+    # RESEARCH ARTICLE FIELDS
+    # =========================
+
+    post_type = db.Column(
+        db.String(50),
+        default="regular",
+        nullable=False
+    )
+
+    abstract = db.Column(
+        db.Text,
+        nullable=True
+    )
+
+    research_authors = db.Column(
+        db.String(500),
+        nullable=True
+    )
+
+    journal = db.Column(
+        db.String(255),
+        nullable=True
+    )
+
+    publication_year = db.Column(
+        db.String(10),
+        nullable=True
+    )
+
+    doi = db.Column(
+        db.String(255),
+        nullable=True
+    )
+
+    external_link = db.Column(
+        db.String(500),
+        nullable=True
+    )
+
+    research_file = db.Column(
+        db.String(255),
+        nullable=True
+    )
+
     is_hidden = db.Column(
         db.Boolean,
         default=False

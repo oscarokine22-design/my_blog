@@ -72,12 +72,15 @@ ALLOWED_IMAGE_EXTENSIONS = {
     "webp"
 }
 
-
 ALLOWED_VIDEO_EXTENSIONS = {
     "mp4",
     "webm",
     "ogg",
     "mov"
+}
+
+ALLOWED_DOCUMENT_EXTENSIONS = {
+    "pdf"
 }
 
 
@@ -86,6 +89,94 @@ ALLOWED_VIDEO_EXTENSIONS = {
 # =========================
 
 db.init_app(app)
+
+
+# =========================
+# DATABASE MIGRATION
+# =========================
+
+def update_database():
+
+    database_uri = app.config.get("SQLALCHEMY_DATABASE_URI", "")
+
+    if not database_uri.startswith("sqlite:///"):
+        return
+
+    database_path = database_uri.replace(
+        "sqlite:///",
+        "",
+        1
+    )
+
+    if not os.path.isabs(database_path):
+        database_path = os.path.join(
+            app.root_path,
+            database_path
+        )
+
+    database_path = os.path.abspath(
+        database_path
+    )
+
+    if not os.path.exists(database_path):
+        return
+
+    connection = sqlite3.connect(
+        database_path
+    )
+
+    cursor = connection.cursor()
+
+    cursor.execute(
+        "PRAGMA table_info(post)"
+    )
+
+    columns = {
+        row[1]
+        for row in cursor.fetchall()
+    }
+
+    new_columns = {
+        "post_type":
+            "VARCHAR(50) DEFAULT 'regular'",
+
+        "abstract":
+            "TEXT",
+
+        "research_authors":
+            "VARCHAR(500)",
+
+        "journal":
+            "VARCHAR(255)",
+
+        "publication_year":
+            "VARCHAR(10)",
+
+        "doi":
+            "VARCHAR(255)",
+
+        "external_link":
+            "VARCHAR(500)",
+
+        "research_file":
+            "VARCHAR(255)"
+    }
+
+    for column_name, column_definition in new_columns.items():
+
+        if column_name not in columns:
+
+            cursor.execute(
+                f"""
+                ALTER TABLE post
+                ADD COLUMN {column_name}
+                {column_definition}
+                """
+            )
+
+    connection.commit()
+
+    connection.close()
 
 
 # =========================
@@ -136,6 +227,18 @@ def allowed_video(filename):
     )
 
 
+def allowed_document(filename):
+
+    return (
+        "." in filename
+        and filename.rsplit(
+            ".",
+            1
+        )[1].lower()
+        in ALLOWED_DOCUMENT_EXTENSIONS
+    )
+
+
 def create_notification(
     user_id,
     message,
@@ -151,13 +254,14 @@ def create_notification(
         is_read=False
     )
 
-    db.session.add(notification)
+    db.session.add(
+        notification
+    )
 
 
 def admin_required():
 
     if not current_user.is_authenticated:
-
         return False
 
     return bool(
@@ -287,7 +391,9 @@ def register():
             is_admin=False
         )
 
-        db.session.add(new_user)
+        db.session.add(
+            new_user
+        )
 
         db.session.commit()
 
@@ -404,6 +510,15 @@ def search():
                     search_term
                 ),
                 Post.category.ilike(
+                    search_term
+                ),
+                Post.abstract.ilike(
+                    search_term
+                ),
+                Post.research_authors.ilike(
+                    search_term
+                ),
+                Post.journal.ilike(
                     search_term
                 )
             )
@@ -708,6 +823,48 @@ def create():
             ""
         ).strip()
 
+        post_type = request.form.get(
+            "post_type",
+            "regular"
+        ).strip().lower()
+
+        abstract = request.form.get(
+            "abstract",
+            ""
+        ).strip()
+
+        research_authors = request.form.get(
+            "research_authors",
+            ""
+        ).strip()
+
+        journal = request.form.get(
+            "journal",
+            ""
+        ).strip()
+
+        publication_year = request.form.get(
+            "publication_year",
+            ""
+        ).strip()
+
+        doi = request.form.get(
+            "doi",
+            ""
+        ).strip()
+
+        external_link = request.form.get(
+            "external_link",
+            ""
+        ).strip()
+
+        if post_type not in [
+            "regular",
+            "research"
+        ]:
+
+            post_type = "regular"
+
         if not title or not content:
 
             flash(
@@ -723,13 +880,46 @@ def create():
             title=title,
             content=content,
             category=category,
+            post_type=post_type,
+            abstract=abstract if post_type == "research" else None,
+            research_authors=(
+                research_authors
+                if post_type == "research"
+                else None
+            ),
+            journal=(
+                journal
+                if post_type == "research"
+                else None
+            ),
+            publication_year=(
+                publication_year
+                if post_type == "research"
+                else None
+            ),
+            doi=(
+                doi
+                if post_type == "research"
+                else None
+            ),
+            external_link=(
+                external_link
+                if post_type == "research"
+                else None
+            ),
             author_id=current_user.id,
             is_hidden=False
         )
 
-        db.session.add(post)
+        db.session.add(
+            post
+        )
 
         db.session.flush()
+
+        # =========================
+        # MULTIPLE IMAGES
+        # =========================
 
         images = request.files.getlist(
             "images"
@@ -763,6 +953,10 @@ def create():
                         post_image
                     )
 
+        # =========================
+        # SINGLE IMAGE
+        # =========================
+
         image = request.files.get(
             "image"
         )
@@ -785,6 +979,10 @@ def create():
                 )
 
                 post.image = filename
+
+        # =========================
+        # VIDEO
+        # =========================
 
         video = request.files.get(
             "video"
@@ -815,6 +1013,61 @@ def create():
                     "Invalid video format.",
                     "error"
                 )
+
+                db.session.rollback()
+
+                return redirect(
+                    url_for("create")
+                )
+
+        # =========================
+        # RESEARCH PDF
+        # =========================
+
+        research_file = request.files.get(
+            "research_file"
+        )
+
+        if research_file and research_file.filename:
+
+            if post_type != "research":
+
+                flash(
+                    "PDF files can only be uploaded for research articles.",
+                    "error"
+                )
+
+                db.session.rollback()
+
+                return redirect(
+                    url_for("create")
+                )
+
+            if allowed_document(
+                research_file.filename
+            ):
+
+                filename = secure_filename(
+                    research_file.filename
+                )
+
+                research_file.save(
+                    os.path.join(
+                        app.config["UPLOAD_FOLDER"],
+                        filename
+                    )
+                )
+
+                post.research_file = filename
+
+            else:
+
+                flash(
+                    "Only PDF research files are allowed.",
+                    "error"
+                )
+
+                db.session.rollback()
 
                 return redirect(
                     url_for("create")
@@ -848,7 +1101,9 @@ def create():
 )
 def post(id):
 
-    post = Post.query.get_or_404(id)
+    post = Post.query.get_or_404(
+        id
+    )
 
     if post.is_hidden:
 
@@ -864,8 +1119,7 @@ def post(id):
             )
 
         if (
-            post.author_id
-            != current_user.id
+            post.author_id != current_user.id
             and not admin_required()
         ):
 
@@ -894,7 +1148,9 @@ def post(id):
 @login_required
 def like(id):
 
-    post = Post.query.get_or_404(id)
+    post = Post.query.get_or_404(
+        id
+    )
 
     existing_like = Like.query.filter_by(
         user_id=current_user.id,
@@ -948,7 +1204,9 @@ def like(id):
 @login_required
 def comment(id):
 
-    post = Post.query.get_or_404(id)
+    post = Post.query.get_or_404(
+        id
+    )
 
     content = request.form.get(
         "content",
@@ -989,7 +1247,7 @@ def comment(id):
 
 
 # =========================
-# REPLY TO COMMENT
+# REPLY
 # =========================
 
 @app.route(
@@ -1108,7 +1366,9 @@ def notification_read(id):
 @login_required
 def edit(id):
 
-    post = Post.query.get_or_404(id)
+    post = Post.query.get_or_404(
+        id
+    )
 
     if post.author_id != current_user.id:
 
@@ -1137,6 +1397,43 @@ def edit(id):
             "category",
             ""
         ).strip()
+
+        post_type = request.form.get(
+            "post_type",
+            post.post_type or "regular"
+        ).strip().lower()
+
+        post.post_type = post_type
+
+        post.abstract = request.form.get(
+            "abstract",
+            ""
+        ).strip() if post_type == "research" else None
+
+        post.research_authors = request.form.get(
+            "research_authors",
+            ""
+        ).strip() if post_type == "research" else None
+
+        post.journal = request.form.get(
+            "journal",
+            ""
+        ).strip() if post_type == "research" else None
+
+        post.publication_year = request.form.get(
+            "publication_year",
+            ""
+        ).strip() if post_type == "research" else None
+
+        post.doi = request.form.get(
+            "doi",
+            ""
+        ).strip() if post_type == "research" else None
+
+        post.external_link = request.form.get(
+            "external_link",
+            ""
+        ).strip() if post_type == "research" else None
 
         db.session.commit()
 
@@ -1168,7 +1465,9 @@ def edit(id):
 @login_required
 def delete(id):
 
-    post = Post.query.get_or_404(id)
+    post = Post.query.get_or_404(
+        id
+    )
 
     if (
         post.author_id != current_user.id
@@ -1184,7 +1483,9 @@ def delete(id):
             url_for("home")
         )
 
-    db.session.delete(post)
+    db.session.delete(
+        post
+    )
 
     db.session.commit()
 
@@ -1199,7 +1500,7 @@ def delete(id):
 
 
 # =========================
-# ADMIN PANEL
+# ADMIN
 # =========================
 
 @app.route("/admin")
@@ -1238,7 +1539,7 @@ def admin():
 
 
 # =========================
-# ADMIN MAKE / REMOVE ADMIN
+# ADMIN TOGGLE USER
 # =========================
 
 @app.route(
@@ -1318,7 +1619,9 @@ def admin_delete_user(user_id):
             url_for("admin")
         )
 
-    db.session.delete(user)
+    db.session.delete(
+        user
+    )
 
     db.session.commit()
 
@@ -1386,7 +1689,9 @@ def admin_delete_post(post_id):
         post_id
     )
 
-    db.session.delete(post)
+    db.session.delete(
+        post
+    )
 
     db.session.commit()
 
@@ -1454,7 +1759,9 @@ def admin_delete_comment(comment_id):
         comment_id
     )
 
-    db.session.delete(comment)
+    db.session.delete(
+        comment
+    )
 
     db.session.commit()
 
@@ -1490,6 +1797,8 @@ if __name__ == "__main__":
     with app.app_context():
 
         db.create_all()
+
+        update_database()
 
     print("===================================")
     print("MYBLOG IS RUNNING")
