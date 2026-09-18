@@ -175,12 +175,32 @@ class Post(db.Model):
         default=datetime.utcnow
     )
 
+    # =========================
+    # MULTIPLE IMAGES
+    # =========================
+
     images = db.relationship(
         "PostImage",
         backref="post",
         lazy=True,
         cascade="all, delete-orphan"
     )
+
+    # =========================
+    # CONTENT BLOCKS
+    # =========================
+
+    blocks = db.relationship(
+        "PostBlock",
+        backref="post",
+        lazy=True,
+        cascade="all, delete-orphan",
+        order_by="PostBlock.position"
+    )
+
+    # =========================
+    # LIKES
+    # =========================
 
     likes = db.relationship(
         "Like",
@@ -189,6 +209,10 @@ class Post(db.Model):
         cascade="all, delete-orphan"
     )
 
+    # =========================
+    # COMMENTS
+    # =========================
+
     comments = db.relationship(
         "Comment",
         backref="post",
@@ -196,10 +220,59 @@ class Post(db.Model):
         cascade="all, delete-orphan"
     )
 
+    # =========================
+    # NOTIFICATIONS
+    # =========================
+
     notifications = db.relationship(
         "Notification",
         backref="post",
         lazy=True
+    )
+
+
+# =========================
+# CONTENT BLOCK
+# =========================
+
+class PostBlock(db.Model):
+
+    __tablename__ = "post_block"
+
+    id = db.Column(
+        db.Integer,
+        primary_key=True
+    )
+
+    post_id = db.Column(
+        db.Integer,
+        db.ForeignKey("post.id"),
+        nullable=False
+    )
+
+    # text, image, or video
+    block_type = db.Column(
+        db.String(20),
+        nullable=False
+    )
+
+    # For text blocks this contains the text.
+    # For image/video blocks this contains the filename.
+    content = db.Column(
+        db.Text,
+        nullable=True
+    )
+
+    # Determines the order of the block.
+    position = db.Column(
+        db.Integer,
+        nullable=False,
+        default=0
+    )
+
+    created_at = db.Column(
+        db.DateTime,
+        default=datetime.utcnow
     )
 
 

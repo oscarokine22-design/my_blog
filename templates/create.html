@@ -1,163 +1,364 @@
 {% extends "base.html" %}
 
+{% block title %}
+Create Post - MyBlog
+{% endblock %}
+
 {% block content %}
 
-<div class="form-container">
+<style>
+    .create-page {
+        max-width: 900px;
+        margin: 40px auto;
+        padding: 0 20px;
+    }
 
-    <div class="form-card create-post-card">
+    .create-card {
+        background: white;
+        border-radius: 18px;
+        padding: 30px;
+        box-shadow: 0 8px 30px rgba(40, 48, 77, 0.08);
+    }
+
+    .create-header {
+        margin-bottom: 30px;
+    }
+
+    .create-header h1 {
+        margin: 0 0 8px;
+        color: #28304d;
+    }
+
+    .create-header p {
+        margin: 0;
+        color: #6b7280;
+    }
+
+    .form-group {
+        margin-bottom: 22px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #28304d;
+    }
+
+    .form-group input,
+    .form-group select {
+        width: 100%;
+        padding: 12px 14px;
+        border: 1px solid #d7dcf0;
+        border-radius: 10px;
+        font-size: 15px;
+        box-sizing: border-box;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .block textarea:focus {
+        outline: none;
+        border-color: #6175d1;
+        box-shadow: 0 0 0 3px rgba(97, 117, 209, 0.12);
+    }
+
+    .research-box {
+        margin-top: 25px;
+        padding: 20px;
+        background: #f6f7ff;
+        border: 1px solid #dfe3f7;
+        border-radius: 14px;
+    }
+
+    .research-box h3 {
+        margin-top: 0;
+        color: #28304d;
+    }
+
+    .research-fields {
+        display: none;
+    }
+
+    /* =========================
+       BLOCK EDITOR
+       ========================= */
+
+    .editor-title {
+        margin-top: 35px;
+        margin-bottom: 8px;
+        color: #28304d;
+    }
+
+    .editor-description {
+        color: #6b7280;
+        margin-bottom: 20px;
+    }
+
+    #blocks-container {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    }
+
+    .block {
+        border: 1px solid #dfe3f0;
+        border-radius: 14px;
+        background: #fafbff;
+        overflow: hidden;
+    }
+
+    .block-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 15px;
+        background: #f0f2ff;
+        border-bottom: 1px solid #dfe3f0;
+    }
+
+    .block-label {
+        font-weight: 700;
+        color: #39446d;
+    }
+
+    .block-actions {
+        display: flex;
+        gap: 6px;
+    }
+
+    .block-actions button {
+        border: none;
+        border-radius: 7px;
+        padding: 6px 9px;
+        cursor: pointer;
+        background: white;
+        color: #39446d;
+        font-size: 14px;
+    }
+
+    .block-actions button:hover {
+        background: #e4e7fb;
+    }
+
+    .block-actions .delete-btn {
+        color: #c0392b;
+    }
+
+    .block-body {
+        padding: 18px;
+    }
+
+    .block textarea {
+        width: 100%;
+        min-height: 180px;
+        resize: vertical;
+        border: 1px solid #d7dcf0;
+        border-radius: 10px;
+        padding: 14px;
+        font-family: inherit;
+        font-size: 15px;
+        line-height: 1.6;
+        box-sizing: border-box;
+    }
+
+    .file-input {
+        width: 100%;
+        padding: 12px;
+        border: 1px dashed #b9c1e3;
+        border-radius: 10px;
+        background: white;
+        box-sizing: border-box;
+    }
+
+    .media-preview {
+        margin-top: 15px;
+    }
+
+    .media-preview img {
+        max-width: 100%;
+        max-height: 350px;
+        border-radius: 10px;
+        display: block;
+    }
+
+    .media-preview video {
+        max-width: 100%;
+        max-height: 400px;
+        border-radius: 10px;
+        display: block;
+    }
+
+    .empty-editor {
+        padding: 40px 20px;
+        text-align: center;
+        border: 2px dashed #d7dcf0;
+        border-radius: 14px;
+        color: #7b8199;
+    }
+
+    /* =========================
+       ADD BUTTONS
+       ========================= */
+
+    .add-block-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .add-block-buttons button {
+        border: none;
+        padding: 11px 16px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-weight: 600;
+        background: #eef0ff;
+        color: #5367c9;
+    }
+
+    .add-block-buttons button:hover {
+        background: #dfe3ff;
+    }
+
+    .submit-area {
+        margin-top: 30px;
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .submit-button {
+        border: none;
+        background: #5367c9;
+        color: white;
+        padding: 13px 25px;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .submit-button:hover {
+        background: #4356b3;
+    }
+
+    @media (max-width: 600px) {
+        .create-card {
+            padding: 20px;
+        }
+
+        .block-header {
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .block-actions {
+            flex-wrap: wrap;
+        }
+
+        .submit-area {
+            justify-content: stretch;
+        }
+
+        .submit-button {
+            width: 100%;
+        }
+    }
+</style>
+
+
+<div class="create-page">
+
+    <div class="create-card">
 
         <div class="create-header">
-            <div>
-                <span class="create-badge">✦ MyBlog</span>
-
-                <h1>Create a New Post</h1>
-
-                <p>
-                    Share your thoughts, stories, pictures,
-                    videos or research with the community.
-                </p>
-            </div>
+            <h1>Create a New Post</h1>
+            <p>
+                Share your thoughts, stories, pictures, videos or research
+                with the MyBlog community.
+            </p>
         </div>
 
 
         <form method="POST"
-              enctype="multipart/form-data">
+              enctype="multipart/form-data"
+              class="post-form"
+              id="post-form">
 
 
-            <!-- POST TYPE -->
-
-            <div class="form-group">
-
-                <label for="post_type">
-                    What are you posting?
-                </label>
-
-                <select
-                    name="post_type"
-                    id="post_type"
-                    onchange="toggleResearchFields()"
-                >
-
-                    <option value="regular">
-                        Regular Post
-                    </option>
-
-                    <option value="research">
-                        🔬 Research Article
-                    </option>
-
-                </select>
-
-            </div>
-
-
-            <!-- TITLE -->
+            <!-- =========================
+                 TITLE
+                 ========================= -->
 
             <div class="form-group">
-
-                <label for="title">
-                    Title
-                </label>
+                <label for="title">Title</label>
 
                 <input
                     type="text"
                     id="title"
                     name="title"
                     placeholder="Enter your post title"
-                    maxlength="200"
                     required
                 >
-
             </div>
 
 
-            <!-- CATEGORY -->
+            <!-- =========================
+                 CATEGORY
+                 ========================= -->
 
             <div class="form-group">
 
-                <label for="category">
-                    Category
-                </label>
+                <label for="category">Category</label>
 
                 <select
-                    name="category"
                     id="category"
+                    name="category"
                 >
-
-                    <option value="">
-                        Select a category
-                    </option>
-
-                    <option value="Education">
-                        Education
-                    </option>
-
-                    <option value="Technology">
-                        Technology
-                    </option>
-
-                    <option value="Health">
-                        Health
-                    </option>
-
-                    <option value="Psychology">
-                        Psychology
-                    </option>
-
-                    <option value="Research">
-                        Research
-                    </option>
-
-                    <option value="Science">
-                        Science
-                    </option>
-
-                    <option value="Lifestyle">
-                        Lifestyle
-                    </option>
-
-                    <option value="News">
-                        News
-                    </option>
-
-                    <option value="Other">
-                        Other
-                    </option>
-
+                    <option value="">No Category</option>
+                    <option value="Technology">Technology</option>
+                    <option value="Education">Education</option>
+                    <option value="Psychology">Psychology</option>
+                    <option value="Lifestyle">Lifestyle</option>
+                    <option value="Entertainment">Entertainment</option>
+                    <option value="News">News</option>
+                    <option value="Personal">Personal</option>
+                    <option value="Other">Other</option>
                 </select>
 
             </div>
 
 
-            <!-- RESEARCH SECTION -->
+            <!-- =========================
+                 POST TYPE
+                 ========================= -->
+
+            <div class="form-group">
+
+                <label for="post_type">Post Type</label>
+
+                <select
+                    id="post_type"
+                    name="post_type"
+                >
+                    <option value="regular">Regular Post</option>
+                    <option value="research">Research Article</option>
+                </select>
+
+            </div>
+
+
+            <!-- =========================
+                 RESEARCH FIELDS
+                 ========================= -->
 
             <div
+                class="research-box research-fields"
                 id="research-fields"
-                class="research-fields"
-                style="display:none;"
             >
 
-                <div class="research-heading">
-
-                    <span class="research-icon">
-                        🔬
-                    </span>
-
-                    <div>
-
-                        <h3>
-                            Research Article Information
-                        </h3>
-
-                        <p>
-                            Add information about the research
-                            so readers can understand and reference it.
-                        </p>
-
-                    </div>
-
-                </div>
-
+                <h3>Research Article Information</h3>
 
                 <div class="form-group">
 
@@ -166,10 +367,10 @@
                     </label>
 
                     <textarea
-                        name="abstract"
                         id="abstract"
-                        placeholder="Enter the research abstract..."
+                        name="abstract"
                         rows="6"
+                        style="width:100%; box-sizing:border-box; padding:12px; border:1px solid #d7dcf0; border-radius:10px;"
                     ></textarea>
 
                 </div>
@@ -183,46 +384,42 @@
 
                     <input
                         type="text"
-                        name="research_authors"
                         id="research_authors"
-                        placeholder="e.g. John Doe, Jane Smith"
+                        name="research_authors"
+                        placeholder="Author names"
                     >
 
                 </div>
 
 
-                <div class="research-row">
+                <div class="form-group">
 
-                    <div class="form-group">
+                    <label for="journal">
+                        Journal
+                    </label>
 
-                        <label for="journal">
-                            Journal / Publication
-                        </label>
+                    <input
+                        type="text"
+                        id="journal"
+                        name="journal"
+                        placeholder="Journal name"
+                    >
 
-                        <input
-                            type="text"
-                            name="journal"
-                            id="journal"
-                            placeholder="Journal name"
-                        >
-
-                    </div>
+                </div>
 
 
-                    <div class="form-group">
+                <div class="form-group">
 
-                        <label for="publication_year">
-                            Publication Year
-                        </label>
+                    <label for="publication_year">
+                        Publication Year
+                    </label>
 
-                        <input
-                            type="text"
-                            name="publication_year"
-                            id="publication_year"
-                            placeholder="2026"
-                        >
-
-                    </div>
+                    <input
+                        type="text"
+                        id="publication_year"
+                        name="publication_year"
+                        placeholder="e.g. 2026"
+                    >
 
                 </div>
 
@@ -235,9 +432,9 @@
 
                     <input
                         type="text"
-                        name="doi"
                         id="doi"
-                        placeholder="e.g. 10.1000/example"
+                        name="doi"
+                        placeholder="DOI"
                     >
 
                 </div>
@@ -246,13 +443,13 @@
                 <div class="form-group">
 
                     <label for="external_link">
-                        Article Link
+                        External Link
                     </label>
 
                     <input
                         type="url"
-                        name="external_link"
                         id="external_link"
+                        name="external_link"
                         placeholder="https://..."
                     >
 
@@ -267,111 +464,80 @@
 
                     <input
                         type="file"
-                        name="research_file"
                         id="research_file"
-                        accept=".pdf,application/pdf"
+                        name="research_file"
+                        accept=".pdf"
                     >
-
-                    <small>
-                        Upload the full research article as a PDF.
-                    </small>
 
                 </div>
 
             </div>
 
 
-            <!-- CONTENT -->
+            <!-- =========================
+                 CONTENT BLOCK EDITOR
+                 ========================= -->
 
-            <div class="form-group">
+            <h2 class="editor-title">
+                Post Content
+            </h2>
 
-                <label for="content">
-                    Content
-                </label>
-
-                <textarea
-                    name="content"
-                    id="content"
-                    placeholder="Write your story..."
-                    rows="10"
-                    required
-                ></textarea>
-
-            </div>
+            <p class="editor-description">
+                Add text, images and videos in any order you want.
+                You can move each block up or down.
+            </p>
 
 
-            <!-- IMAGES -->
+            <div id="blocks-container">
 
-            <div class="upload-section">
-
-                <h3>
-                    📷 Add Images
-                </h3>
-
-                <p>
-                    You can select multiple images.
-                </p>
-
-                <input
-                    type="file"
-                    name="images"
-                    accept="image/*"
-                    multiple
-                >
+                <div class="empty-editor" id="empty-editor">
+                    Start building your post by adding a text, image or video block.
+                </div>
 
             </div>
 
 
-            <!-- SINGLE IMAGE -->
+            <!-- =========================
+                 ADD BLOCK BUTTONS
+                 ========================= -->
 
-            <div class="upload-section">
+            <div class="add-block-buttons">
 
-                <h3>
-                    🖼️ Featured Image
-                </h3>
-
-                <input
-                    type="file"
-                    name="image"
-                    accept="image/*"
+                <button
+                    type="button"
+                    onclick="addTextBlock()"
                 >
+                    + Add Text
+                </button>
+
+                <button
+                    type="button"
+                    onclick="addImageBlock()"
+                >
+                    + Add Image
+                </button>
+
+                <button
+                    type="button"
+                    onclick="addVideoBlock()"
+                >
+                    + Add Video
+                </button>
 
             </div>
 
 
-            <!-- VIDEO -->
+            <!-- =========================
+                 SUBMIT
+                 ========================= -->
 
-            <div class="upload-section">
-
-                <h3>
-                    🎥 Add Video
-                </h3>
-
-                <input
-                    type="file"
-                    name="video"
-                    accept="video/*"
-                >
-
-            </div>
-
-
-            <!-- SUBMIT -->
-
-            <div class="create-actions">
-
-                <a
-                    href="{{ url_for('home') }}"
-                    class="cancel-button"
-                >
-                    Cancel
-                </a>
+            <div class="submit-area">
 
                 <button
                     type="submit"
-                    class="publish-button"
+                    class="submit-button"
                 >
-                    🚀 Publish Post
+                    Publish Post
                 </button>
 
             </div>
@@ -385,25 +551,554 @@
 
 <script>
 
-function toggleResearchFields() {
+let blockCounter = 0;
 
-    const type =
-        document.getElementById("post_type").value;
 
-    const fields =
-        document.getElementById("research-fields");
+/* =========================
+   EMPTY EDITOR
+   ========================= */
 
-    if (type === "research") {
+function updateEmptyMessage() {
 
-        fields.style.display = "block";
+    const container = document.getElementById("blocks-container");
+    const empty = document.getElementById("empty-editor");
 
+    const blocks = container.querySelectorAll(".block");
+
+    if (blocks.length === 0) {
+        empty.style.display = "block";
     } else {
+        empty.style.display = "none";
+    }
+}
 
-        fields.style.display = "none";
+
+/* =========================
+   CREATE BLOCK
+   ========================= */
+
+function createBlock(type) {
+
+    const container = document.getElementById("blocks-container");
+
+    const block = document.createElement("div");
+
+    block.className = "block";
+
+    block.dataset.type = type;
+
+    block.innerHTML = `
+        <div class="block-header">
+
+            <span class="block-label">
+                ${getBlockLabel(type)}
+            </span>
+
+            <div class="block-actions">
+
+                <button
+                    type="button"
+                    onclick="moveBlockUp(this)"
+                    title="Move up"
+                >
+                    ↑
+                </button>
+
+                <button
+                    type="button"
+                    onclick="moveBlockDown(this)"
+                    title="Move down"
+                >
+                    ↓
+                </button>
+
+                <button
+                    type="button"
+                    class="delete-btn"
+                    onclick="deleteBlock(this)"
+                    title="Delete"
+                >
+                    ✕
+                </button>
+
+            </div>
+
+        </div>
+
+        <div class="block-body">
+
+            <input
+                type="hidden"
+                name="block_type"
+                value="${type}"
+            >
+
+            <div class="block-content-area"></div>
+
+        </div>
+    `;
+
+    container.appendChild(block);
+
+    const contentArea =
+        block.querySelector(".block-content-area");
+
+
+    /* =========================
+       TEXT
+       ========================= */
+
+    if (type === "text") {
+
+        contentArea.innerHTML = `
+
+            <textarea
+                name="block_content"
+                placeholder="Write your text here..."
+                required
+            ></textarea>
+
+        `;
+
+    }
+
+
+    /* =========================
+       IMAGE
+       ========================= */
+
+    if (type === "image") {
+
+        contentArea.innerHTML = `
+
+            <input
+                type="hidden"
+                name="block_content"
+                value=""
+            >
+
+            <input
+                type="file"
+                class="file-input"
+                name="block_file_${blockCounter}"
+                accept="image/*"
+                required
+                onchange="previewImage(this)"
+            >
+
+            <div class="media-preview"></div>
+
+        `;
+
+        block.dataset.fileIndex = blockCounter;
+
+        blockCounter++;
+
+    }
+
+
+    /* =========================
+       VIDEO
+       ========================= */
+
+    if (type === "video") {
+
+        contentArea.innerHTML = `
+
+            <input
+                type="hidden"
+                name="block_content"
+                value=""
+            >
+
+            <input
+                type="file"
+                class="file-input"
+                name="block_file_${blockCounter}"
+                accept="video/mp4,video/webm,video/ogg,video/quicktime"
+                required
+                onchange="previewVideo(this)"
+            >
+
+            <div class="media-preview"></div>
+
+        `;
+
+        block.dataset.fileIndex = blockCounter;
+
+        blockCounter++;
+
+    }
+
+
+    updateEmptyMessage();
+
+    renumberFiles();
+}
+
+
+/* =========================
+   ADD TEXT
+   ========================= */
+
+function addTextBlock() {
+
+    createBlock("text");
+
+}
+
+
+/* =========================
+   ADD IMAGE
+   ========================= */
+
+function addImageBlock() {
+
+    createBlock("image");
+
+}
+
+
+/* =========================
+   ADD VIDEO
+   ========================= */
+
+function addVideoBlock() {
+
+    createBlock("video");
+
+}
+
+
+/* =========================
+   BLOCK LABEL
+   ========================= */
+
+function getBlockLabel(type) {
+
+    if (type === "text") {
+        return "📝 Text";
+    }
+
+    if (type === "image") {
+        return "🖼️ Image";
+    }
+
+    if (type === "video") {
+        return "🎥 Video";
+    }
+
+    return "Content";
+
+}
+
+
+/* =========================
+   DELETE BLOCK
+   ========================= */
+
+function deleteBlock(button) {
+
+    const block = button.closest(".block");
+
+    if (!block) {
+        return;
+    }
+
+    block.remove();
+
+    renumberFiles();
+
+    updateEmptyMessage();
+
+}
+
+
+/* =========================
+   MOVE UP
+   ========================= */
+
+function moveBlockUp(button) {
+
+    const block = button.closest(".block");
+
+    const previous = block.previousElementSibling;
+
+    if (
+        previous &&
+        previous.classList.contains("block")
+    ) {
+
+        block.parentNode.insertBefore(
+            block,
+            previous
+        );
+
+    }
+
+    renumberFiles();
+
+}
+
+
+/* =========================
+   MOVE DOWN
+   ========================= */
+
+function moveBlockDown(button) {
+
+    const block = button.closest(".block");
+
+    const next = block.nextElementSibling;
+
+    if (
+        next &&
+        next.classList.contains("block")
+    ) {
+
+        block.parentNode.insertBefore(
+            next,
+            block
+        );
+
+    }
+
+    renumberFiles();
+
+}
+
+
+/* =========================
+   RENUMBER FILE INPUTS
+   ========================= */
+
+function renumberFiles() {
+
+    const blocks =
+        document.querySelectorAll("#blocks-container .block");
+
+    let fileNumber = 0;
+
+    blocks.forEach(function(block) {
+
+        const fileInput =
+            block.querySelector(
+                'input[type="file"]'
+            );
+
+        if (fileInput) {
+
+            fileInput.name =
+                "block_file_" + fileNumber;
+
+            block.dataset.fileIndex =
+                fileNumber;
+
+            fileNumber++;
+
+        }
+
+    });
+
+}
+
+
+/* =========================
+   IMAGE PREVIEW
+   ========================= */
+
+function previewImage(input) {
+
+    const block =
+        input.closest(".block");
+
+    const preview =
+        block.querySelector(".media-preview");
+
+    preview.innerHTML = "";
+
+    if (
+        input.files &&
+        input.files[0]
+    ) {
+
+        const image =
+            document.createElement("img");
+
+        image.src =
+            URL.createObjectURL(
+                input.files[0]
+            );
+
+        preview.appendChild(image);
 
     }
 
 }
+
+
+/* =========================
+   VIDEO PREVIEW
+   ========================= */
+
+function previewVideo(input) {
+
+    const block =
+        input.closest(".block");
+
+    const preview =
+        block.querySelector(".media-preview");
+
+    preview.innerHTML = "";
+
+    if (
+        input.files &&
+        input.files[0]
+    ) {
+
+        const video =
+            document.createElement("video");
+
+        video.controls = true;
+
+        video.src =
+            URL.createObjectURL(
+                input.files[0]
+            );
+
+        preview.appendChild(video);
+
+    }
+
+}
+
+
+/* =========================
+   FORM VALIDATION
+   ========================= */
+
+document
+    .getElementById("post-form")
+    .addEventListener("submit", function(event) {
+
+        const blocks =
+            document.querySelectorAll(
+                "#blocks-container .block"
+            );
+
+        if (blocks.length === 0) {
+
+            event.preventDefault();
+
+            alert(
+                "Please add at least one content block."
+            );
+
+            return;
+
+        }
+
+        let valid = true;
+
+        blocks.forEach(function(block) {
+
+            const type =
+                block.dataset.type;
+
+            if (type === "text") {
+
+                const textarea =
+                    block.querySelector(
+                        'textarea[name="block_content"]'
+                    );
+
+                if (
+                    !textarea ||
+                    textarea.value.trim() === ""
+                ) {
+
+                    valid = false;
+
+                }
+
+            }
+
+            if (
+                type === "image" ||
+                type === "video"
+            ) {
+
+                const file =
+                    block.querySelector(
+                        'input[type="file"]'
+                    );
+
+                if (
+                    !file ||
+                    file.files.length === 0
+                ) {
+
+                    valid = false;
+
+                }
+
+            }
+
+        });
+
+
+        if (!valid) {
+
+            event.preventDefault();
+
+            alert(
+                "Please complete all text, image and video blocks before publishing."
+            );
+
+            return;
+
+        }
+
+
+        renumberFiles();
+
+    });
+
+
+/* =========================
+   RESEARCH TOGGLE
+   ========================= */
+
+const postType =
+    document.getElementById("post_type");
+
+const researchFields =
+    document.getElementById("research-fields");
+
+
+function toggleResearchFields() {
+
+    if (postType.value === "research") {
+
+        researchFields.style.display =
+            "block";
+
+    } else {
+
+        researchFields.style.display =
+            "none";
+
+    }
+
+}
+
+
+postType.addEventListener(
+    "change",
+    toggleResearchFields
+);
+
+toggleResearchFields();
 
 </script>
 

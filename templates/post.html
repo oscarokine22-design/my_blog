@@ -6,102 +6,529 @@
 
 {% block content %}
 
-<main class="single-post-container">
+<style>
 
-    <article class="single-post">
+    .post-page {
+        max-width: 850px;
+        margin: 40px auto;
+        padding: 0 20px;
+    }
 
-        <div class="post-author">
+    .post-card {
+        background: white;
+        border-radius: 18px;
+        padding: 30px;
+        box-shadow: 0 8px 30px rgba(40, 48, 77, 0.08);
+    }
 
-            <img
-                src="{{ url_for('static', filename='uploads/' + post.author.profile_image) }}"
-                alt="Profile Picture"
-            >
+    .post-header {
+        margin-bottom: 25px;
+    }
 
-            <div>
+    .post-category {
+        display: inline-block;
+        background: #eef0ff;
+        color: #5367c9;
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 12px;
+    }
 
-                <strong>
-                    <a href="{{ url_for('profile', username=post.author.username) }}">
-                        {{ post.author.username }}
-                    </a>
-                </strong>
+    .post-title {
+        margin: 0 0 12px;
+        color: #28304d;
+        font-size: 34px;
+        line-height: 1.25;
+    }
 
-                {% if post.category %}
+    .post-meta {
+        color: #737991;
+        font-size: 14px;
+    }
 
-                    <a
-                        href="{{ url_for('category', category=post.category) }}"
-                        class="post-category"
-                    >
-                        {{ post.category }}
-                    </a>
+    .post-meta a {
+        color: #5367c9;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    /* =========================
+       CONTENT BLOCKS
+       ========================= */
+
+    .post-block {
+        margin: 25px 0;
+    }
+
+    .post-text {
+        color: #30384f;
+        font-size: 17px;
+        line-height: 1.8;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }
+
+    .post-image {
+        width: 100%;
+        max-height: 700px;
+        object-fit: contain;
+        display: block;
+        margin: 0 auto;
+        border-radius: 12px;
+    }
+
+    .post-video {
+        width: 100%;
+        max-height: 650px;
+        display: block;
+        margin: 0 auto;
+        border-radius: 12px;
+        background: #111;
+    }
+
+    /* =========================
+       OLD POSTS
+       ========================= */
+
+    .legacy-content {
+        color: #30384f;
+        font-size: 17px;
+        line-height: 1.8;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }
+
+    .legacy-image {
+        width: 100%;
+        max-height: 700px;
+        object-fit: contain;
+        border-radius: 12px;
+        display: block;
+        margin-top: 25px;
+    }
+
+    .legacy-video {
+        width: 100%;
+        max-height: 650px;
+        border-radius: 12px;
+        display: block;
+        margin-top: 25px;
+        background: #111;
+    }
+
+    /* =========================
+       RESEARCH
+       ========================= */
+
+    .research-section {
+        margin-top: 30px;
+        padding: 20px;
+        border-radius: 14px;
+        background: #f6f7ff;
+        border: 1px solid #dfe3f7;
+    }
+
+    .research-section h3 {
+        margin-top: 0;
+        color: #28304d;
+    }
+
+    .research-section p {
+        color: #4d5570;
+        line-height: 1.7;
+    }
+
+    .research-link {
+        color: #5367c9;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    /* =========================
+       ACTIONS
+       ========================= */
+
+    .post-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid #e5e7ef;
+    }
+
+    .action-button {
+        display: inline-block;
+        text-decoration: none;
+        border: none;
+        border-radius: 9px;
+        padding: 10px 16px;
+        cursor: pointer;
+        background: #eef0ff;
+        color: #5367c9;
+        font-weight: 600;
+    }
+
+    .action-button:hover {
+        background: #dfe3ff;
+    }
+
+    /* =========================
+       COMMENTS
+       ========================= */
+
+    .comments-section {
+        margin-top: 40px;
+        padding-top: 25px;
+        border-top: 1px solid #e5e7ef;
+    }
+
+    .comments-section h2 {
+        color: #28304d;
+    }
+
+    .comment-form textarea {
+        width: 100%;
+        min-height: 100px;
+        padding: 12px;
+        border: 1px solid #d7dcf0;
+        border-radius: 10px;
+        resize: vertical;
+        box-sizing: border-box;
+        font-family: inherit;
+    }
+
+    .comment-form button {
+        margin-top: 10px;
+        border: none;
+        background: #5367c9;
+        color: white;
+        padding: 10px 18px;
+        border-radius: 9px;
+        cursor: pointer;
+        font-weight: 600;
+    }
+
+    .comment {
+        margin-top: 20px;
+        padding: 15px;
+        background: #f7f8fc;
+        border-radius: 12px;
+    }
+
+    .comment-author {
+        font-weight: 700;
+        color: #39446d;
+    }
+
+    .comment-content {
+        margin-top: 7px;
+        color: #454c62;
+        white-space: pre-wrap;
+    }
+
+    .reply {
+        margin-left: 30px;
+        margin-top: 12px;
+        padding: 12px;
+        background: white;
+        border-left: 3px solid #6175d1;
+        border-radius: 8px;
+    }
+
+    @media (max-width: 600px) {
+
+        .post-card {
+            padding: 20px;
+        }
+
+        .post-title {
+            font-size: 27px;
+        }
+
+        .post-text,
+        .legacy-content {
+            font-size: 16px;
+        }
+
+        .reply {
+            margin-left: 15px;
+        }
+
+    }
+
+</style>
+
+
+<div class="post-page">
+
+    <article class="post-card">
+
+
+        <!-- =========================
+             POST HEADER
+             ========================= -->
+
+        <div class="post-header">
+
+            {% if post.category %}
+
+                <span class="post-category">
+                    {{ post.category }}
+                </span>
+
+            {% endif %}
+
+
+            <h1 class="post-title">
+                {{ post.title }}
+            </h1>
+
+
+            <div class="post-meta">
+
+                By
+
+                <a href="{{ url_for('profile', username=post.author.username) }}">
+                    {{ post.author.username }}
+                </a>
+
+                ·
+
+                {{ post.created_at.strftime('%B %d, %Y') }}
+
+            </div>
+
+        </div>
+
+
+        <!-- =========================
+             RESEARCH ABSTRACT
+             ========================= -->
+
+        {% if post.post_type == "research" and post.abstract %}
+
+            <div class="research-section">
+
+                <h3>
+                    Abstract
+                </h3>
+
+                <p>
+                    {{ post.abstract }}
+                </p>
+
+
+                {% if post.research_authors %}
+
+                    <p>
+                        <strong>Authors:</strong>
+                        {{ post.research_authors }}
+                    </p>
+
+                {% endif %}
+
+
+                {% if post.journal %}
+
+                    <p>
+                        <strong>Journal:</strong>
+                        {{ post.journal }}
+                    </p>
+
+                {% endif %}
+
+
+                {% if post.publication_year %}
+
+                    <p>
+                        <strong>Publication Year:</strong>
+                        {{ post.publication_year }}
+                    </p>
+
+                {% endif %}
+
+
+                {% if post.doi %}
+
+                    <p>
+                        <strong>DOI:</strong>
+                        {{ post.doi }}
+                    </p>
+
+                {% endif %}
+
+
+                {% if post.external_link %}
+
+                    <p>
+                        <a
+                            href="{{ post.external_link }}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="research-link"
+                        >
+                            View External Research Link
+                        </a>
+                    </p>
+
+                {% endif %}
+
+
+                {% if post.research_file %}
+
+                    <p>
+
+                        <a
+                            href="{{ url_for('static', filename='uploads/' + post.research_file) }}"
+                            target="_blank"
+                            class="research-link"
+                        >
+                            📄 View Research PDF
+                        </a>
+
+                    </p>
 
                 {% endif %}
 
             </div>
 
-        </div>
+        {% endif %}
 
 
-        <h1 class="single-post-title">
-            {{ post.title }}
-        </h1>
+        <!-- =================================================
+             NEW BLOCK SYSTEM
+             ================================================= -->
+
+        {% if post.blocks %}
+
+            <div class="post-content">
+
+                {% for block in post.blocks %}
+
+                    <div class="post-block">
 
 
-        <div class="post-content">
-            {{ post.content }}
-        </div>
+                        <!-- TEXT -->
+
+                        {% if block.block_type == "text" %}
+
+                            <div class="post-text">
+                                {{ block.content }}
+                            </div>
 
 
-        {% if post.images %}
+                        <!-- IMAGE -->
 
-            <div class="single-gallery">
+                        {% elif block.block_type == "image" %}
 
-                {% for image in post.images %}
+                            <img
+                                src="{{ url_for('static', filename='uploads/' + block.content) }}"
+                                alt="{{ post.title }}"
+                                class="post-image"
+                                loading="lazy"
+                            >
 
-                    <img
-                        src="{{ url_for('static', filename='uploads/' + image.filename) }}"
-                        alt="Post Image"
-                    >
+
+                        <!-- VIDEO -->
+
+                        {% elif block.block_type == "video" %}
+
+                            <video
+                                class="post-video"
+                                controls
+                                preload="metadata"
+                            >
+
+                                <source
+                                    src="{{ url_for('static', filename='uploads/' + block.content) }}"
+                                >
+
+                                Your browser does not support video playback.
+
+                            </video>
+
+                        {% endif %}
+
+
+                    </div>
 
                 {% endfor %}
 
             </div>
 
-        {% elif post.image %}
 
-            <img
-                src="{{ url_for('static', filename='uploads/' + post.image) }}"
-                class="post-image"
-                alt="Post Image"
-            >
+        <!-- =================================================
+             OLD POST FALLBACK
+             ================================================= -->
 
-        {% endif %}
+        {% else %}
+
+            <div class="legacy-content">
+                {{ post.content }}
+            </div>
 
 
-        {% if post.video %}
+            {% if post.images %}
 
-            <video
-                class="post-video"
-                controls
-            >
+                {% for image in post.images %}
 
-                <source
-                    src="{{ url_for('static', filename='uploads/' + post.video) }}"
-                    type="video/mp4"
+                    <img
+                        src="{{ url_for('static', filename='uploads/' + image.filename) }}"
+                        alt="{{ post.title }}"
+                        class="legacy-image"
+                        loading="lazy"
+                    >
+
+                {% endfor %}
+
+            {% endif %}
+
+
+            {% if post.image %}
+
+                <img
+                    src="{{ url_for('static', filename='uploads/' + post.image) }}"
+                    alt="{{ post.title }}"
+                    class="legacy-image"
+                    loading="lazy"
                 >
 
-                Your browser does not support video.
+            {% endif %}
 
-            </video>
+
+            {% if post.video %}
+
+                <video
+                    class="legacy-video"
+                    controls
+                    preload="metadata"
+                >
+
+                    <source
+                        src="{{ url_for('static', filename='uploads/' + post.video) }}"
+                    >
+
+                    Your browser does not support video playback.
+
+                </video>
+
+            {% endif %}
 
         {% endif %}
 
+
+        <!-- =========================
+             ACTIONS
+             ========================= -->
 
         <div class="post-actions">
 
             {% if current_user.is_authenticated %}
 
                 <a
-                    href="{{ url_for('like', id=post.id) }}"
+                    href="{{ url_for('like', post_id=post.id) }}"
                     class="action-button"
                 >
                     ❤️ Like
@@ -109,159 +536,110 @@
 
             {% endif %}
 
-            <span>
-                ❤️ {{ post.likes|length }}
-            </span>
 
-            <span>
-                💬 {{ post.comments|selectattr('parent_id', 'equalto', none)|list|length }}
-            </span>
+            {% if current_user.is_authenticated and current_user.id == post.author_id %}
 
-            <button
-                type="button"
-                onclick="sharePost()"
-                class="share-button"
-            >
-                🔗 Share
-            </button>
-
-        </div>
-
-
-        <div
-            id="share-message"
-            class="share-message"
-        ></div>
-
-
-        {% if current_user.is_authenticated
-              and current_user.id == post.author_id %}
-
-            <div class="owner-actions">
-
-                <a href="{{ url_for('edit', id=post.id) }}">
+                <a
+                    href="{{ url_for('edit', post_id=post.id) }}"
+                    class="action-button"
+                >
                     ✏️ Edit
                 </a>
 
                 <a
-                    href="{{ url_for('delete', id=post.id) }}"
+                    href="{{ url_for('delete', post_id=post.id) }}"
+                    class="action-button"
                     onclick="return confirm('Are you sure you want to delete this post?');"
-                    class="delete-link"
                 >
                     🗑️ Delete
                 </a>
 
-            </div>
+            {% endif %}
 
-        {% endif %}
-
-    </article>
+        </div>
 
 
-    <section class="comments-section">
+        <!-- =========================
+             COMMENTS
+             ========================= -->
 
-        <h2>
-            Comments
-        </h2>
+        <div class="comments-section">
+
+            <h2>
+                Comments
+            </h2>
 
 
-        {% if current_user.is_authenticated %}
+            {% if current_user.is_authenticated %}
 
-            <form
-                action="{{ url_for('comment', id=post.id) }}"
-                method="POST"
-                class="comment-form"
-            >
+                <form
+                    method="POST"
+                    action="{{ url_for('comment', post_id=post.id) }}"
+                    class="comment-form"
+                >
 
-                <textarea
-                    name="content"
-                    rows="4"
-                    placeholder="Write a comment..."
-                    required
-                ></textarea>
+                    <textarea
+                        name="content"
+                        placeholder="Write a comment..."
+                        required
+                    ></textarea>
 
-                <button type="submit">
-                    💬 Post Comment
-                </button>
+                    <button type="submit">
+                        Post Comment
+                    </button>
 
-            </form>
+                </form>
 
-        {% else %}
-
-            <div class="login-comment">
+            {% else %}
 
                 <p>
-                    <a href="{{ url_for('login') }}">
-                        Login
-                    </a>
-                    to leave a comment.
+                    Please log in to comment.
                 </p>
 
-            </div>
-
-        {% endif %}
+            {% endif %}
 
 
-        <div class="comments-list">
+            {% if post.comments %}
 
-            {% for comment in post.comments|reverse %}
-
-                {% if not comment.parent_id and not comment.is_hidden %}
+                {% for comment in post.comments
+                    if not comment.parent_id and not comment.is_hidden %}
 
                     <div class="comment">
 
                         <div class="comment-author">
 
-                            <img
-                                src="{{ url_for('static', filename='uploads/' + comment.user.profile_image) }}"
-                                alt="Profile Picture"
-                            >
-
-                            <strong>
-
-                                <a
-                                    href="{{ url_for('profile', username=comment.user.username) }}"
-                                >
-                                    {{ comment.user.username }}
-                                </a>
-
-                            </strong>
+                            {{ comment.user.username }}
 
                         </div>
 
 
-                        <p>
+                        <div class="comment-content">
+
                             {{ comment.content }}
-                        </p>
+
+                        </div>
 
 
                         {% if current_user.is_authenticated %}
 
-                            <button
-                                type="button"
-                                class="reply-button"
-                                onclick="showReply({{ comment.id }})"
-                            >
-                                ↩️ Reply
-                            </button>
-
-
                             <form
-                                id="reply-form-{{ comment.id }}"
-                                action="{{ url_for('reply', comment_id=comment.id) }}"
                                 method="POST"
-                                class="reply-form"
-                                style="display:none;"
+                                action="{{ url_for('reply', comment_id=comment.id) }}"
+                                style="margin-top:12px;"
                             >
 
-                                <textarea
+                                <input
+                                    type="text"
                                     name="content"
-                                    rows="2"
-                                    placeholder="Write a reply..."
+                                    placeholder="Reply..."
                                     required
-                                ></textarea>
+                                    style="width:100%; box-sizing:border-box; padding:9px; border:1px solid #d7dcf0; border-radius:8px;"
+                                >
 
-                                <button type="submit">
+                                <button
+                                    type="submit"
+                                    style="margin-top:7px; border:none; background:#eef0ff; color:#5367c9; padding:7px 12px; border-radius:7px; cursor:pointer;"
+                                >
                                     Reply
                                 </button>
 
@@ -270,139 +648,45 @@
                         {% endif %}
 
 
-                        {% for reply in comment.replies %}
+                        {% for reply in comment.replies
+                            if not reply.is_hidden %}
 
-                            {% if not reply.is_hidden %}
+                            <div class="reply">
 
-                                <div class="comment-reply">
+                                <div class="comment-author">
 
-                                    <div class="comment-author">
-
-                                        <img
-                                            src="{{ url_for('static', filename='uploads/' + reply.user.profile_image) }}"
-                                            alt="Profile Picture"
-                                        >
-
-                                        <strong>
-
-                                            <a
-                                                href="{{ url_for('profile', username=reply.user.username) }}"
-                                            >
-                                                {{ reply.user.username }}
-                                            </a>
-
-                                        </strong>
-
-                                    </div>
-
-                                    <p>
-                                        {{ reply.content }}
-                                    </p>
+                                    {{ reply.user.username }}
 
                                 </div>
 
-                            {% endif %}
+                                <div class="comment-content">
+
+                                    {{ reply.content }}
+
+                                </div>
+
+                            </div>
 
                         {% endfor %}
 
+
                     </div>
 
-                {% endif %}
+                {% endfor %}
 
             {% else %}
 
-                <div class="no-comments">
+                <p>
+                    No comments yet. Be the first to comment.
+                </p>
 
-                    <p>
-                        No comments yet. Be the first to comment!
-                    </p>
-
-                </div>
-
-            {% endfor %}
+            {% endif %}
 
         </div>
 
-    </section>
 
+    </article>
 
-    <a
-        href="{{ url_for('home') }}"
-        class="back-link"
-    >
-        ← Back to Home
-    </a>
-
-</main>
-
-
-<script>
-
-function showReply(id) {
-
-    const form =
-        document.getElementById(
-            "reply-form-" + id
-        );
-
-    if (form.style.display === "none") {
-
-        form.style.display = "block";
-
-    } else {
-
-        form.style.display = "none";
-
-    }
-}
-
-
-function sharePost() {
-
-    const url = window.location.href;
-
-    const title =
-        {{ post.title|tojson }};
-
-    if (navigator.share) {
-
-        navigator.share({
-            title: title,
-            text: "Check out this post on MyBlog",
-            url: url
-        }).catch(function() {});
-
-    } else if (navigator.clipboard) {
-
-        navigator.clipboard.writeText(url)
-        .then(function() {
-
-            const message =
-                document.getElementById(
-                    "share-message"
-                );
-
-            message.innerHTML =
-                "✅ Post link copied!";
-
-            setTimeout(function() {
-
-                message.innerHTML = "";
-
-            }, 3000);
-
-        });
-
-    } else {
-
-        alert(
-            "Copy this link: " + url
-        );
-
-    }
-
-}
-
-</script>
+</div>
 
 {% endblock %}

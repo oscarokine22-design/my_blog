@@ -4,21 +4,244 @@
 Edit Post - MyBlog
 {% endblock %}
 
-
 {% block content %}
 
-<div class="form-page">
+<style>
+    .edit-page {
+        max-width: 900px;
+        margin: 40px auto;
+        padding: 0 20px;
+    }
 
-    <div class="form-card">
+    .edit-card {
+        background: white;
+        border-radius: 18px;
+        padding: 30px;
+        box-shadow: 0 8px 30px rgba(40, 48, 77, 0.08);
+    }
 
-        <div class="form-header">
+    .edit-header {
+        margin-bottom: 30px;
+    }
 
-            <h1>
-                Edit Post
-            </h1>
+    .edit-header h1 {
+        margin: 0 0 8px;
+        color: #28304d;
+    }
+
+    .edit-header p {
+        color: #6b7280;
+        margin: 0;
+    }
+
+    .form-group {
+        margin-bottom: 22px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #28304d;
+    }
+
+    .form-group input,
+    .form-group select {
+        width: 100%;
+        padding: 12px 14px;
+        border: 1px solid #d7dcf0;
+        border-radius: 10px;
+        font-size: 15px;
+        box-sizing: border-box;
+    }
+
+    .editor-title {
+        margin-top: 35px;
+        margin-bottom: 8px;
+        color: #28304d;
+    }
+
+    .editor-description {
+        color: #6b7280;
+        margin-bottom: 20px;
+    }
+
+    #blocks-container {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    }
+
+    .block {
+        border: 1px solid #dfe3f0;
+        border-radius: 14px;
+        background: #fafbff;
+        overflow: hidden;
+    }
+
+    .block-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 15px;
+        background: #f0f2ff;
+        border-bottom: 1px solid #dfe3f0;
+    }
+
+    .block-label {
+        font-weight: 700;
+        color: #39446d;
+    }
+
+    .block-actions {
+        display: flex;
+        gap: 6px;
+    }
+
+    .block-actions button {
+        border: none;
+        border-radius: 7px;
+        padding: 6px 9px;
+        cursor: pointer;
+        background: white;
+        color: #39446d;
+    }
+
+    .block-actions button:hover {
+        background: #e4e7fb;
+    }
+
+    .block-actions .delete-btn {
+        color: #c0392b;
+    }
+
+    .block-body {
+        padding: 18px;
+    }
+
+    .block textarea {
+        width: 100%;
+        min-height: 180px;
+        resize: vertical;
+        border: 1px solid #d7dcf0;
+        border-radius: 10px;
+        padding: 14px;
+        font-family: inherit;
+        font-size: 15px;
+        line-height: 1.6;
+        box-sizing: border-box;
+    }
+
+    .file-input {
+        width: 100%;
+        padding: 12px;
+        border: 1px dashed #b9c1e3;
+        border-radius: 10px;
+        background: white;
+        box-sizing: border-box;
+    }
+
+    .current-media {
+        margin-bottom: 15px;
+    }
+
+    .current-media p {
+        margin-top: 0;
+        color: #6b7280;
+        font-size: 14px;
+    }
+
+    .current-media img {
+        max-width: 100%;
+        max-height: 350px;
+        border-radius: 10px;
+        display: block;
+    }
+
+    .current-media video {
+        max-width: 100%;
+        max-height: 400px;
+        border-radius: 10px;
+        display: block;
+    }
+
+    .media-preview {
+        margin-top: 15px;
+    }
+
+    .media-preview img,
+    .media-preview video {
+        max-width: 100%;
+        max-height: 400px;
+        border-radius: 10px;
+    }
+
+    .add-block-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .add-block-buttons button {
+        border: none;
+        padding: 11px 16px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-weight: 600;
+        background: #eef0ff;
+        color: #5367c9;
+    }
+
+    .add-block-buttons button:hover {
+        background: #dfe3ff;
+    }
+
+    .submit-area {
+        margin-top: 30px;
+    }
+
+    .submit-button {
+        border: none;
+        background: #5367c9;
+        color: white;
+        padding: 13px 25px;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .submit-button:hover {
+        background: #4356b3;
+    }
+
+    @media (max-width: 600px) {
+
+        .edit-card {
+            padding: 20px;
+        }
+
+        .block-header {
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+    }
+</style>
+
+
+<div class="edit-page">
+
+    <div class="edit-card">
+
+        <div class="edit-header">
+
+            <h1>Edit Post</h1>
 
             <p>
-                Update your post.
+                Update your post and arrange your text,
+                images and videos in any order.
             </p>
 
         </div>
@@ -26,135 +249,897 @@ Edit Post - MyBlog
 
         <form
             method="POST"
-            class="post-form"
+            enctype="multipart/form-data"
+            id="edit-form"
         >
 
 
-            <label>
-                Title
-            </label>
+            <!-- TITLE -->
 
-            <input
-                type="text"
-                name="title"
-                value="{{ post.title }}"
-                required
-            >
+            <div class="form-group">
 
+                <label for="title">
+                    Title
+                </label>
 
-            <label>
-                Category
-            </label>
-
-            <select name="category">
-
-                <option
-                    value=""
-                    {% if not post.category %}
-                    selected
-                    {% endif %}
+                <input
+                    type="text"
+                    id="title"
+                    name="title"
+                    value="{{ post.title }}"
+                    required
                 >
-                    No Category
-                </option>
 
-                <option
-                    value="Technology"
-                    {% if post.category == "Technology" %}
-                    selected
-                    {% endif %}
+            </div>
+
+
+            <!-- CATEGORY -->
+
+            <div class="form-group">
+
+                <label for="category">
+                    Category
+                </label>
+
+                <select
+                    name="category"
+                    id="category"
                 >
-                    Technology
-                </option>
 
-                <option
-                    value="Education"
-                    {% if post.category == "Education" %}
-                    selected
-                    {% endif %}
+                    <option
+                        value=""
+                        {% if not post.category %}
+                            selected
+                        {% endif %}
+                    >
+                        No Category
+                    </option>
+
+                    <option
+                        value="Technology"
+                        {% if post.category == "Technology" %}
+                            selected
+                        {% endif %}
+                    >
+                        Technology
+                    </option>
+
+                    <option
+                        value="Education"
+                        {% if post.category == "Education" %}
+                            selected
+                        {% endif %}
+                    >
+                        Education
+                    </option>
+
+                    <option
+                        value="Psychology"
+                        {% if post.category == "Psychology" %}
+                            selected
+                        {% endif %}
+                    >
+                        Psychology
+                    </option>
+
+                    <option
+                        value="Lifestyle"
+                        {% if post.category == "Lifestyle" %}
+                            selected
+                        {% endif %}
+                    >
+                        Lifestyle
+                    </option>
+
+                    <option
+                        value="Entertainment"
+                        {% if post.category == "Entertainment" %}
+                            selected
+                        {% endif %}
+                    >
+                        Entertainment
+                    </option>
+
+                    <option
+                        value="News"
+                        {% if post.category == "News" %}
+                            selected
+                        {% endif %}
+                    >
+                        News
+                    </option>
+
+                    <option
+                        value="Personal"
+                        {% if post.category == "Personal" %}
+                            selected
+                        {% endif %}
+                    >
+                        Personal
+                    </option>
+
+                    <option
+                        value="Other"
+                        {% if post.category == "Other" %}
+                            selected
+                        {% endif %}
+                    >
+                        Other
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- CONTENT -->
+
+            <h2 class="editor-title">
+                Post Content
+            </h2>
+
+            <p class="editor-description">
+                Your existing content blocks are shown below.
+                You can edit, move, delete or add new blocks.
+            </p>
+
+
+            <div id="blocks-container">
+
+                {% if post.blocks %}
+
+                    {% for block in post.blocks %}
+
+                        <div
+                            class="block"
+                            data-type="{{ block.block_type }}"
+                        >
+
+                            <div class="block-header">
+
+                                <span class="block-label">
+
+                                    {% if block.block_type == "text" %}
+                                        📝 Text
+                                    {% elif block.block_type == "image" %}
+                                        🖼️ Image
+                                    {% elif block.block_type == "video" %}
+                                        🎥 Video
+                                    {% endif %}
+
+                                </span>
+
+
+                                <div class="block-actions">
+
+                                    <button
+                                        type="button"
+                                        onclick="moveBlockUp(this)"
+                                    >
+                                        ↑
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onclick="moveBlockDown(this)"
+                                    >
+                                        ↓
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        class="delete-btn"
+                                        onclick="deleteBlock(this)"
+                                    >
+                                        ✕
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="block-body">
+
+                                <input
+                                    type="hidden"
+                                    name="block_type"
+                                    value="{{ block.block_type }}"
+                                >
+
+
+                                {% if block.block_type == "text" %}
+
+                                    <textarea
+                                        name="block_content"
+                                        required
+                                    >{{ block.content }}</textarea>
+
+
+                                {% elif block.block_type == "image" %}
+
+                                    <input
+                                        type="hidden"
+                                        name="block_content"
+                                        value="{{ block.content }}"
+                                    >
+
+                                    <div class="current-media">
+
+                                        <p>
+                                            Current image:
+                                        </p>
+
+                                        <img
+                                            src="{{ url_for('static', filename='uploads/' + block.content) }}"
+                                            alt="Post image"
+                                        >
+
+                                    </div>
+
+
+                                    <label>
+                                        Replace image (optional)
+                                    </label>
+
+                                    <input
+                                        type="file"
+                                        class="file-input"
+                                        name="block_file_{{ loop.index0 }}"
+                                        accept="image/*"
+                                        onchange="previewImage(this)"
+                                    >
+
+                                    <div class="media-preview"></div>
+
+
+                                {% elif block.block_type == "video" %}
+
+                                    <input
+                                        type="hidden"
+                                        name="block_content"
+                                        value="{{ block.content }}"
+                                    >
+
+                                    <div class="current-media">
+
+                                        <p>
+                                            Current video:
+                                        </p>
+
+                                        <video controls>
+
+                                            <source
+                                                src="{{ url_for('static', filename='uploads/' + block.content) }}"
+                                            >
+
+                                            Your browser does not support video playback.
+
+                                        </video>
+
+                                    </div>
+
+
+                                    <label>
+                                        Replace video (optional)
+                                    </label>
+
+                                    <input
+                                        type="file"
+                                        class="file-input"
+                                        name="block_file_{{ loop.index0 }}"
+                                        accept="video/mp4,video/webm,video/ogg,video/quicktime"
+                                        onchange="previewVideo(this)"
+                                    >
+
+                                    <div class="media-preview"></div>
+
+                                {% endif %}
+
+                            </div>
+
+                        </div>
+
+                    {% endfor %}
+
+
+                {% else %}
+
+                    <!--
+                        OLD POSTS:
+                        If an old post does not have PostBlock records,
+                        create one text block from post.content.
+                    -->
+
+                    <div
+                        class="block"
+                        data-type="text"
+                    >
+
+                        <div class="block-header">
+
+                            <span class="block-label">
+                                📝 Text
+                            </span>
+
+                            <div class="block-actions">
+
+                                <button
+                                    type="button"
+                                    onclick="moveBlockUp(this)"
+                                >
+                                    ↑
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onclick="moveBlockDown(this)"
+                                >
+                                    ↓
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="delete-btn"
+                                    onclick="deleteBlock(this)"
+                                >
+                                    ✕
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                        <div class="block-body">
+
+                            <input
+                                type="hidden"
+                                name="block_type"
+                                value="text"
+                            >
+
+                            <textarea
+                                name="block_content"
+                                required
+                            >{{ post.content }}</textarea>
+
+                        </div>
+
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+
+            <!-- ADD BUTTONS -->
+
+            <div class="add-block-buttons">
+
+                <button
+                    type="button"
+                    onclick="addTextBlock()"
                 >
-                    Education
-                </option>
+                    + Add Text
+                </button>
 
-                <option
-                    value="Psychology"
-                    {% if post.category == "Psychology" %}
-                    selected
-                    {% endif %}
+                <button
+                    type="button"
+                    onclick="addImageBlock()"
                 >
-                    Psychology
-                </option>
+                    + Add Image
+                </button>
 
-                <option
-                    value="Lifestyle"
-                    {% if post.category == "Lifestyle" %}
-                    selected
-                    {% endif %}
+                <button
+                    type="button"
+                    onclick="addVideoBlock()"
                 >
-                    Lifestyle
-                </option>
+                    + Add Video
+                </button>
 
-                <option
-                    value="Entertainment"
-                    {% if post.category == "Entertainment" %}
-                    selected
-                    {% endif %}
+            </div>
+
+
+            <!-- SAVE -->
+
+            <div class="submit-area">
+
+                <button
+                    type="submit"
+                    class="submit-button"
                 >
-                    Entertainment
-                </option>
+                    💾 Save Changes
+                </button>
 
-                <option
-                    value="News"
-                    {% if post.category == "News" %}
-                    selected
-                    {% endif %}
-                >
-                    News
-                </option>
-
-                <option
-                    value="Personal"
-                    {% if post.category == "Personal" %}
-                    selected
-                    {% endif %}
-                >
-                    Personal
-                </option>
-
-                <option
-                    value="Other"
-                    {% if post.category == "Other" %}
-                    selected
-                    {% endif %}
-                >
-                    Other
-                </option>
-
-            </select>
-
-
-            <label>
-                Content
-            </label>
-
-            <textarea
-                name="content"
-                rows="12"
-                required
-            >{{ post.content }}</textarea>
-
-
-            <button
-                type="submit"
-                class="submit-button"
-            >
-                💾 Save Changes
-            </button>
-
+            </div>
 
         </form>
 
     </div>
 
 </div>
+
+
+<script>
+
+let newFileCounter = 1000;
+
+
+/* =========================
+   DELETE
+   ========================= */
+
+function deleteBlock(button) {
+
+    const block =
+        button.closest(".block");
+
+    if (block) {
+        block.remove();
+    }
+
+    renumberFiles();
+
+}
+
+
+/* =========================
+   MOVE UP
+   ========================= */
+
+function moveBlockUp(button) {
+
+    const block =
+        button.closest(".block");
+
+    const previous =
+        block.previousElementSibling;
+
+    if (
+        previous &&
+        previous.classList.contains("block")
+    ) {
+
+        block.parentNode.insertBefore(
+            block,
+            previous
+        );
+
+    }
+
+    renumberFiles();
+
+}
+
+
+/* =========================
+   MOVE DOWN
+   ========================= */
+
+function moveBlockDown(button) {
+
+    const block =
+        button.closest(".block");
+
+    const next =
+        block.nextElementSibling;
+
+    if (
+        next &&
+        next.classList.contains("block")
+    ) {
+
+        block.parentNode.insertBefore(
+            next,
+            block
+        );
+
+    }
+
+    renumberFiles();
+
+}
+
+
+/* =========================
+   ADD TEXT
+   ========================= */
+
+function addTextBlock() {
+
+    const container =
+        document.getElementById(
+            "blocks-container"
+        );
+
+    const block =
+        document.createElement("div");
+
+    block.className = "block";
+
+    block.dataset.type = "text";
+
+    block.innerHTML = `
+
+        <div class="block-header">
+
+            <span class="block-label">
+                📝 Text
+            </span>
+
+            <div class="block-actions">
+
+                <button
+                    type="button"
+                    onclick="moveBlockUp(this)"
+                >
+                    ↑
+                </button>
+
+                <button
+                    type="button"
+                    onclick="moveBlockDown(this)"
+                >
+                    ↓
+                </button>
+
+                <button
+                    type="button"
+                    class="delete-btn"
+                    onclick="deleteBlock(this)"
+                >
+                    ✕
+                </button>
+
+            </div>
+
+        </div>
+
+        <div class="block-body">
+
+            <input
+                type="hidden"
+                name="block_type"
+                value="text"
+            >
+
+            <textarea
+                name="block_content"
+                placeholder="Write your text here..."
+                required
+            ></textarea>
+
+        </div>
+    `;
+
+    container.appendChild(block);
+
+}
+
+
+/* =========================
+   ADD IMAGE
+   ========================= */
+
+function addImageBlock() {
+
+    const container =
+        document.getElementById(
+            "blocks-container"
+        );
+
+    const block =
+        document.createElement("div");
+
+    block.className = "block";
+
+    block.dataset.type = "image";
+
+    block.innerHTML = `
+
+        <div class="block-header">
+
+            <span class="block-label">
+                🖼️ Image
+            </span>
+
+            <div class="block-actions">
+
+                <button
+                    type="button"
+                    onclick="moveBlockUp(this)"
+                >
+                    ↑
+                </button>
+
+                <button
+                    type="button"
+                    onclick="moveBlockDown(this)"
+                >
+                    ↓
+                </button>
+
+                <button
+                    type="button"
+                    class="delete-btn"
+                    onclick="deleteBlock(this)"
+                >
+                    ✕
+                </button>
+
+            </div>
+
+        </div>
+
+        <div class="block-body">
+
+            <input
+                type="hidden"
+                name="block_type"
+                value="image"
+            >
+
+            <input
+                type="hidden"
+                name="block_content"
+                value=""
+            >
+
+            <input
+                type="file"
+                class="file-input"
+                name="block_file_${newFileCounter}"
+                accept="image/*"
+                required
+                onchange="previewImage(this)"
+            >
+
+            <div class="media-preview"></div>
+
+        </div>
+    `;
+
+    newFileCounter++;
+
+    container.appendChild(block);
+
+    renumberFiles();
+
+}
+
+
+/* =========================
+   ADD VIDEO
+   ========================= */
+
+function addVideoBlock() {
+
+    const container =
+        document.getElementById(
+            "blocks-container"
+        );
+
+    const block =
+        document.createElement("div");
+
+    block.className = "block";
+
+    block.dataset.type = "video";
+
+    block.innerHTML = `
+
+        <div class="block-header">
+
+            <span class="block-label">
+                🎥 Video
+            </span>
+
+            <div class="block-actions">
+
+                <button
+                    type="button"
+                    onclick="moveBlockUp(this)"
+                >
+                    ↑
+                </button>
+
+                <button
+                    type="button"
+                    onclick="moveBlockDown(this)"
+                >
+                    ↓
+                </button>
+
+                <button
+                    type="button"
+                    class="delete-btn"
+                    onclick="deleteBlock(this)"
+                >
+                    ✕
+                </button>
+
+            </div>
+
+        </div>
+
+        <div class="block-body">
+
+            <input
+                type="hidden"
+                name="block_type"
+                value="video"
+            >
+
+            <input
+                type="hidden"
+                name="block_content"
+                value=""
+            >
+
+            <input
+                type="file"
+                class="file-input"
+                name="block_file_${newFileCounter}"
+                accept="video/mp4,video/webm,video/ogg,video/quicktime"
+                required
+                onchange="previewVideo(this)"
+            >
+
+            <div class="media-preview"></div>
+
+        </div>
+    `;
+
+    newFileCounter++;
+
+    container.appendChild(block);
+
+    renumberFiles();
+
+}
+
+
+/* =========================
+   RENUMBER FILES
+   ========================= */
+
+function renumberFiles() {
+
+    const blocks =
+        document.querySelectorAll(
+            "#blocks-container .block"
+        );
+
+    let fileNumber = 0;
+
+    blocks.forEach(function(block) {
+
+        const fileInput =
+            block.querySelector(
+                'input[type="file"]'
+            );
+
+        if (fileInput) {
+
+            fileInput.name =
+                "block_file_" + fileNumber;
+
+            fileNumber++;
+
+        }
+
+    });
+
+}
+
+
+/* =========================
+   IMAGE PREVIEW
+   ========================= */
+
+function previewImage(input) {
+
+    const block =
+        input.closest(".block");
+
+    const preview =
+        block.querySelector(
+            ".media-preview"
+        );
+
+    preview.innerHTML = "";
+
+    if (
+        input.files &&
+        input.files[0]
+    ) {
+
+        const image =
+            document.createElement("img");
+
+        image.src =
+            URL.createObjectURL(
+                input.files[0]
+            );
+
+        preview.appendChild(image);
+
+    }
+
+}
+
+
+/* =========================
+   VIDEO PREVIEW
+   ========================= */
+
+function previewVideo(input) {
+
+    const block =
+        input.closest(".block");
+
+    const preview =
+        block.querySelector(
+            ".media-preview"
+        );
+
+    preview.innerHTML = "";
+
+    if (
+        input.files &&
+        input.files[0]
+    ) {
+
+        const video =
+            document.createElement("video");
+
+        video.controls = true;
+
+        video.src =
+            URL.createObjectURL(
+                input.files[0]
+            );
+
+        preview.appendChild(video);
+
+    }
+
+}
+
+
+/* =========================
+   SUBMIT
+   ========================= */
+
+document
+    .getElementById("edit-form")
+    .addEventListener(
+        "submit",
+        function(event) {
+
+            const blocks =
+                document.querySelectorAll(
+                    "#blocks-container .block"
+                );
+
+            if (blocks.length === 0) {
+
+                event.preventDefault();
+
+                alert(
+                    "Your post must contain at least one content block."
+                );
+
+                return;
+
+            }
+
+            renumberFiles();
+
+        }
+    );
+
+
+</script>
 
 {% endblock %}

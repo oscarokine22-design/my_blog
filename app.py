@@ -1,6 +1,5 @@
 import os
 import sqlite3
-
 from datetime import datetime
 
 from flask import (
@@ -34,6 +33,7 @@ from models import (
     User,
     Post,
     PostImage,
+    PostBlock,
     Like,
     Comment,
     Follow,
@@ -41,28 +41,71 @@ from models import (
 )
 
 
-app = Flask(__name__)
+# ============================================================
+# APP CONFIGURATION
+# ============================================================
 
+app = Flask(__name__)
 app.config.from_object(Config)
 
-
-# =========================
-# UPLOADS
-# =========================
-
-UPLOAD_FOLDER = os.path.join(
+app.config["UPLOAD_FOLDER"] = os.path.join(
     app.root_path,
     "static",
     "uploads"
 )
 
-app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
-
 os.makedirs(
-    UPLOAD_FOLDER,
+    app.config["UPLOAD_FOLDER"],
     exist_ok=True
 )
 
+
+# ============================================================
+# DATABASE
+# ============================================================
+
+db.init_app(app)
+
+
+# ============================================================
+# LOGIN MANAGER
+# ============================================================
+
+login_manager = LoginManager()
+login_manager.login_view = "login"
+login_manager.init_app(app)
+
+
+@login_manager.user_loader
+def load_user(user_id):
+
+    return User.query.get(int(user_id))
+
+
+# ============================================================
+# GLOBAL TEMPLATE VARIABLES
+# ============================================================
+
+@app.context_processor
+def inject_unread_notifications():
+
+    unread_notifications = 0
+
+    if current_user.is_authenticated:
+
+        unread_notifications = Notification.query.filter_by(
+            user_id=current_user.id,
+            is_read=False
+        ).count()
+
+    return {
+        "unread_notifications": unread_notifications
+    }
+
+
+# ============================================================
+# ALLOWED FILE TYPES
+# ============================================================
 
 ALLOWED_IMAGE_EXTENSIONS = {
     "jpg",
@@ -84,133 +127,11 @@ ALLOWED_DOCUMENT_EXTENSIONS = {
 }
 
 
-# =========================
-# DATABASE
-# =========================
-
-db.init_app(app)
-
-
-# =========================
-# DATABASE MIGRATION
-# =========================
-
-def update_database():
-
-    database_uri = app.config.get("SQLALCHEMY_DATABASE_URI", "")
-
-    if not database_uri.startswith("sqlite:///"):
-        return
-
-    database_path = database_uri.replace(
-        "sqlite:///",
-        "",
-        1
-    )
-
-    if not os.path.isabs(database_path):
-        database_path = os.path.join(
-            app.root_path,
-            database_path
-        )
-
-    database_path = os.path.abspath(
-        database_path
-    )
-
-    if not os.path.exists(database_path):
-        return
-
-    connection = sqlite3.connect(
-        database_path
-    )
-
-    cursor = connection.cursor()
-
-    cursor.execute(
-        "PRAGMA table_info(post)"
-    )
-
-    columns = {
-        row[1]
-        for row in cursor.fetchall()
-    }
-
-    new_columns = {
-        "post_type":
-            "VARCHAR(50) DEFAULT 'regular'",
-
-        "abstract":
-            "TEXT",
-
-        "research_authors":
-            "VARCHAR(500)",
-
-        "journal":
-            "VARCHAR(255)",
-
-        "publication_year":
-            "VARCHAR(10)",
-
-        "doi":
-            "VARCHAR(255)",
-
-        "external_link":
-            "VARCHAR(500)",
-
-        "research_file":
-            "VARCHAR(255)"
-    }
-
-    for column_name, column_definition in new_columns.items():
-
-        if column_name not in columns:
-
-            cursor.execute(
-                f"""
-                ALTER TABLE post
-                ADD COLUMN {column_name}
-                {column_definition}
-                """
-            )
-
-    connection.commit()
-
-    connection.close()
-
-
-# =========================
-# LOGIN
-# =========================
-
-login_manager = LoginManager()
-
-login_manager.init_app(app)
-
-login_manager.login_view = "login"
-
-
-@login_manager.user_loader
-def load_user(user_id):
-
-    return db.session.get(
-        User,
-        int(user_id)
-    )
-
-
-# =========================
-# HELPERS
-# =========================
-
 def allowed_image(filename):
 
     return (
         "." in filename
-        and filename.rsplit(
-            ".",
-            1
-        )[1].lower()
+        and filename.rsplit(".", 1)[1].lower()
         in ALLOWED_IMAGE_EXTENSIONS
     )
 
@@ -219,10 +140,7 @@ def allowed_video(filename):
 
     return (
         "." in filename
-        and filename.rsplit(
-            ".",
-            1
-        )[1].lower()
+        and filename.rsplit(".", 1)[1].lower()
         in ALLOWED_VIDEO_EXTENSIONS
     )
 
@@ -231,94 +149,150 @@ def allowed_document(filename):
 
     return (
         "." in filename
-        and filename.rsplit(
-            ".",
-            1
-        )[1].lower()
+        and filename.rsplit(".", 1)[1].lower()
         in ALLOWED_DOCUMENT_EXTENSIONS
     )
 
 
-def create_notification(
-    user_id,
-    message,
-    post_id=None,
-    notification_type=None
-):
+# ============================================================
+# DATABASE UPDATE
+# ============================================================
 
-    notification = Notification(
-        user_id=user_id,
-        message=message,
-        post_id=post_id,
-        notification_type=notification_type,
-        is_read=False
-    )
+def update_database():
 
-    db.session.add(
-        notification
-    )
+    """
+    Adds newer columns/tables to older databases
+    without deleting existing data.
+    """
 
+    database_uri = app.config.get("SQLALCHEMY_DATABASE_URI", "")
 
-def admin_required():
+    if database_uri.startswith("sqlite:///"):
 
-    if not current_user.is_authenticated:
-        return False
-
-    return bool(
-        getattr(
-            current_user,
-            "is_admin",
-            False
+        database_path = database_uri.replace(
+            "sqlite:///",
+            "",
+            1
         )
-    )
+
+        if not os.path.isabs(database_path):
+
+            database_path = os.path.join(
+                app.root_path,
+                database_path
+            )
+
+        if os.path.exists(database_path):
+
+            connection = sqlite3.connect(
+                database_path
+            )
+
+            cursor = connection.cursor()
 
 
-# =========================
-# GLOBAL DATA
-# =========================
+            # ------------------------------------------------
+            # EXISTING RESEARCH COLUMNS
+            # ------------------------------------------------
 
-@app.context_processor
-def inject_notifications():
+            cursor.execute(
+                "PRAGMA table_info(post)"
+            )
 
-    unread_notifications = 0
-
-    if current_user.is_authenticated:
-
-        unread_notifications = Notification.query.filter_by(
-            user_id=current_user.id,
-            is_read=False
-        ).count()
-
-    return {
-        "unread_notifications":
-            unread_notifications
-    }
+            existing_columns = {
+                row[1]
+                for row in cursor.fetchall()
+            }
 
 
-# =========================
+            columns_to_add = {
+
+                "post_type":
+                    "TEXT",
+
+                "abstract":
+                    "TEXT",
+
+                "research_authors":
+                    "TEXT",
+
+                "journal":
+                    "TEXT",
+
+                "publication_year":
+                    "TEXT",
+
+                "doi":
+                    "TEXT",
+
+                "external_link":
+                    "TEXT",
+
+                "research_file":
+                    "TEXT"
+            }
+
+
+            for column, column_type in (
+                columns_to_add.items()
+            ):
+
+                if column not in existing_columns:
+
+                    cursor.execute(
+                        f"""
+                        ALTER TABLE post
+                        ADD COLUMN {column}
+                        {column_type}
+                        """
+                    )
+
+
+            # ------------------------------------------------
+            # NEW POST BLOCK TABLE
+            # ------------------------------------------------
+
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS post_block (
+
+                    id INTEGER PRIMARY KEY,
+
+                    post_id INTEGER NOT NULL,
+
+                    block_type VARCHAR(20) NOT NULL,
+
+                    content TEXT,
+
+                    position INTEGER NOT NULL DEFAULT 0,
+
+                    created_at DATETIME,
+
+                    FOREIGN KEY(post_id)
+                    REFERENCES post(id)
+                    ON DELETE CASCADE
+
+                )
+                """
+            )
+
+
+            connection.commit()
+            connection.close()
+
+
+# ============================================================
 # HOME
-# =========================
+# ============================================================
 
 @app.route("/")
 def home():
 
-    page = request.args.get(
-        "page",
-        1,
-        type=int
-    )
-
-    if page < 1:
-        page = 1
-
-    posts = Post.query.filter_by(
-        is_hidden=False
-    ).order_by(
-        Post.id.desc()
-    ).paginate(
-        page=page,
-        per_page=5,
-        error_out=False
+    posts = (
+        Post.query
+        .filter_by(is_hidden=False)
+        .order_by(Post.created_at.desc())
+        .all()
     )
 
     return render_template(
@@ -327,14 +301,11 @@ def home():
     )
 
 
-# =========================
+# ============================================================
 # REGISTER
-# =========================
+# ============================================================
 
-@app.route(
-    "/register",
-    methods=["GET", "POST"]
-)
+@app.route("/register", methods=["GET", "POST"])
 def register():
 
     if current_user.is_authenticated:
@@ -342,6 +313,7 @@ def register():
         return redirect(
             url_for("home")
         )
+
 
     if request.method == "POST":
 
@@ -355,10 +327,11 @@ def register():
             ""
         )
 
+
         if not username or not password:
 
             flash(
-                "Please fill in all fields.",
+                "Username and password are required.",
                 "error"
             )
 
@@ -366,9 +339,11 @@ def register():
                 url_for("register")
             )
 
+
         existing_user = User.query.filter_by(
             username=username
         ).first()
+
 
         if existing_user:
 
@@ -381,44 +356,43 @@ def register():
                 url_for("register")
             )
 
-        new_user = User(
+
+        hashed_password = (
+            generate_password_hash(password)
+        )
+
+
+        user = User(
             username=username,
-            password=generate_password_hash(
-                password
-            ),
-            bio="No bio yet",
-            profile_image="default.jpg",
-            is_admin=False
+            password=hashed_password
         )
 
-        db.session.add(
-            new_user
-        )
 
+        db.session.add(user)
         db.session.commit()
 
+
         flash(
-            "Account created successfully.",
+            "Registration successful. Please log in.",
             "success"
         )
+
 
         return redirect(
             url_for("login")
         )
+
 
     return render_template(
         "register.html"
     )
 
 
-# =========================
+# ============================================================
 # LOGIN
-# =========================
+# ============================================================
 
-@app.route(
-    "/login",
-    methods=["GET", "POST"]
-)
+@app.route("/login", methods=["GET", "POST"])
 def login():
 
     if current_user.is_authenticated:
@@ -426,6 +400,7 @@ def login():
         return redirect(
             url_for("home")
         )
+
 
     if request.method == "POST":
 
@@ -439,39 +414,41 @@ def login():
             ""
         )
 
+
         user = User.query.filter_by(
             username=username
         ).first()
 
-        if user and check_password_hash(
-            user.password,
-            password
+
+        if (
+            user
+            and check_password_hash(
+                user.password,
+                password
+            )
         ):
 
             login_user(user)
 
-            flash(
-                "Welcome back!",
-                "success"
-            )
-
             return redirect(
                 url_for("home")
             )
+
 
         flash(
             "Invalid username or password.",
             "error"
         )
 
+
     return render_template(
         "login.html"
     )
 
 
-# =========================
+# ============================================================
 # LOGOUT
-# =========================
+# ============================================================
 
 @app.route("/logout")
 @login_required
@@ -484,9 +461,9 @@ def logout():
     )
 
 
-# =========================
+# ============================================================
 # SEARCH
-# =========================
+# ============================================================
 
 @app.route("/search")
 def search():
@@ -496,39 +473,33 @@ def search():
         ""
     ).strip()
 
+
+    posts = []
+
+
     if query:
 
-        search_term = f"%{query}%"
+        search_pattern = f"%{query}%"
 
-        posts = Post.query.filter(
-            Post.is_hidden == False,
-            db.or_(
-                Post.title.ilike(
-                    search_term
-                ),
-                Post.content.ilike(
-                    search_term
-                ),
-                Post.category.ilike(
-                    search_term
-                ),
-                Post.abstract.ilike(
-                    search_term
-                ),
-                Post.research_authors.ilike(
-                    search_term
-                ),
-                Post.journal.ilike(
-                    search_term
+
+        posts = (
+            Post.query
+            .filter(
+                Post.is_hidden == False,
+                (
+                    Post.title.ilike(search_pattern)
+                    |
+                    Post.content.ilike(search_pattern)
+                    |
+                    Post.category.ilike(search_pattern)
                 )
             )
-        ).order_by(
-            Post.id.desc()
-        ).all()
+            .order_by(
+                Post.created_at.desc()
+            )
+            .all()
+        )
 
-    else:
-
-        posts = []
 
     return render_template(
         "search.html",
@@ -537,21 +508,25 @@ def search():
     )
 
 
-# =========================
+# ============================================================
 # CATEGORY
-# =========================
+# ============================================================
 
-@app.route(
-    "/category/<category>"
-)
+@app.route("/category/<category>")
 def category(category):
 
-    posts = Post.query.filter_by(
-        category=category,
-        is_hidden=False
-    ).order_by(
-        Post.id.desc()
-    ).all()
+    posts = (
+        Post.query
+        .filter_by(
+            category=category,
+            is_hidden=False
+        )
+        .order_by(
+            Post.created_at.desc()
+        )
+        .all()
+    )
+
 
     return render_template(
         "category.html",
@@ -560,77 +535,87 @@ def category(category):
     )
 
 
-# =========================
+# ============================================================
 # PROFILE
-# =========================
+# ============================================================
 
-@app.route(
-    "/profile/<username>"
-)
+@app.route("/profile/<username>")
 def profile(username):
 
     user = User.query.filter_by(
         username=username
     ).first_or_404()
 
-    posts = Post.query.filter_by(
-        author_id=user.id,
-        is_hidden=False
-    ).order_by(
-        Post.id.desc()
-    ).all()
 
-    is_following = False
+    posts = (
+        Post.query
+        .filter_by(
+            author_id=user.id,
+            is_hidden=False
+        )
+        .order_by(
+            Post.created_at.desc()
+        )
+        .all()
+    )
 
-    if current_user.is_authenticated:
 
-        if current_user.id != user.id:
-
-            is_following = Follow.query.filter_by(
-                follower_id=current_user.id,
-                followed_id=user.id
-            ).first() is not None
-
-    follower_count = Follow.query.filter_by(
+    followers_count = Follow.query.filter_by(
         followed_id=user.id
     ).count()
+
 
     following_count = Follow.query.filter_by(
         follower_id=user.id
     ).count()
 
+
+    is_following = False
+
+
+    if current_user.is_authenticated:
+
+        is_following = (
+            Follow.query.filter_by(
+                follower_id=current_user.id,
+                followed_id=user.id
+            ).first()
+            is not None
+        )
+
+
     return render_template(
         "profile.html",
         user=user,
         posts=posts,
-        is_following=is_following,
-        follower_count=follower_count,
-        following_count=following_count
+        followers_count=followers_count,
+        following_count=following_count,
+        is_following=is_following
     )
 
 
-# =========================
-# FOLLOW
-# =========================
+# ============================================================
+# FOLLOW / UNFOLLOW
+# ============================================================
 
 @app.route(
-    "/follow/<int:user_id>"
+    "/follow/<int:user_id>",
+    methods=["POST"]
 )
 @login_required
 def follow(user_id):
 
-    user = db.session.get(
-        User,
+    user = User.query.get_or_404(
         user_id
     )
 
-    if not user:
-
-        return redirect(
-            url_for("home")
-        )
 
     if user.id == current_user.id:
+
+        flash(
+            "You cannot follow yourself.",
+            "error"
+        )
 
         return redirect(
             url_for(
@@ -639,10 +624,12 @@ def follow(user_id):
             )
         )
 
+
     existing_follow = Follow.query.filter_by(
         follower_id=current_user.id,
         followed_id=user.id
     ).first()
+
 
     if existing_follow:
 
@@ -661,13 +648,22 @@ def follow(user_id):
             new_follow
         )
 
-        create_notification(
-            user.id,
-            f"{current_user.username} started following you.",
-            notification_type="follow"
+
+        notification = Notification(
+            user_id=user.id,
+            message=(
+                f"{current_user.username} "
+                f"started following you."
+            )
         )
 
+        db.session.add(
+            notification
+        )
+
+
     db.session.commit()
+
 
     return redirect(
         url_for(
@@ -677,57 +673,38 @@ def follow(user_id):
     )
 
 
-# =========================
+# ============================================================
 # DASHBOARD
-# =========================
+# ============================================================
 
 @app.route("/dashboard")
 @login_required
 def dashboard():
 
-    posts = Post.query.filter_by(
-        author_id=current_user.id
-    ).order_by(
-        Post.id.desc()
-    ).all()
-
-    follower_count = Follow.query.filter_by(
-        followed_id=current_user.id
-    ).count()
-
-    following_count = Follow.query.filter_by(
-        follower_id=current_user.id
-    ).count()
-
-    total_likes = 0
-    total_comments = 0
-
-    for post in posts:
-
-        total_likes += len(
-            post.likes
+    posts = (
+        Post.query
+        .filter_by(
+            author_id=current_user.id
         )
-
-        total_comments += len(
-            post.comments
+        .order_by(
+            Post.created_at.desc()
         )
-
-    return render_template(
-        "dashboard.html",
-        posts=posts,
-        follower_count=follower_count,
-        following_count=following_count,
-        total_likes=total_likes,
-        total_comments=total_comments
+        .all()
     )
 
 
-# =========================
+    return render_template(
+        "dashboard.html",
+        posts=posts
+    )
+
+
+# ============================================================
 # EDIT PROFILE
-# =========================
+# ============================================================
 
 @app.route(
-    "/edit_profile",
+    "/edit-profile",
     methods=["GET", "POST"]
 )
 @login_required
@@ -740,48 +717,66 @@ def edit_profile():
             ""
         ).strip()
 
+
         current_user.bio = bio
 
-        image = request.files.get(
+
+        profile_image = request.files.get(
             "profile_image"
         )
 
-        if image and image.filename:
+
+        if (
+            profile_image
+            and profile_image.filename
+        ):
 
             if allowed_image(
-                image.filename
+                profile_image.filename
             ):
 
                 filename = secure_filename(
-                    image.filename
+                    profile_image.filename
                 )
 
-                image.save(
-                    os.path.join(
-                        app.config["UPLOAD_FOLDER"],
+
+                base, extension = (
+                    os.path.splitext(
                         filename
                     )
                 )
 
-                current_user.profile_image = filename
 
-            else:
-
-                flash(
-                    "Invalid image format.",
-                    "error"
+                filename = (
+                    f"user_{current_user.id}_"
+                    f"{int(datetime.utcnow().timestamp())}_"
+                    f"{base}{extension}"
                 )
 
-                return redirect(
-                    url_for("edit_profile")
+
+                profile_image.save(
+                    os.path.join(
+                        app.config[
+                            "UPLOAD_FOLDER"
+                        ],
+                        filename
+                    )
                 )
+
+
+                current_user.profile_image = (
+                    filename
+                )
+
 
         db.session.commit()
+
 
         flash(
             "Profile updated successfully.",
             "success"
         )
+
 
         return redirect(
             url_for(
@@ -790,14 +785,15 @@ def edit_profile():
             )
         )
 
+
     return render_template(
         "edit_profile.html"
     )
 
 
-# =========================
+# ============================================================
 # CREATE POST
-# =========================
+# ============================================================
 
 @app.route(
     "/create",
@@ -813,11 +809,6 @@ def create():
             ""
         ).strip()
 
-        content = request.form.get(
-            "content",
-            ""
-        ).strip()
-
         category = request.form.get(
             "category",
             ""
@@ -827,6 +818,7 @@ def create():
             "post_type",
             "regular"
         ).strip().lower()
+
 
         abstract = request.form.get(
             "abstract",
@@ -858,6 +850,7 @@ def create():
             ""
         ).strip()
 
+
         if post_type not in [
             "regular",
             "research"
@@ -865,10 +858,24 @@ def create():
 
             post_type = "regular"
 
-        if not title or not content:
+
+        # ----------------------------------------------------
+        # CONTENT BLOCKS
+        # ----------------------------------------------------
+
+        block_types = request.form.getlist(
+            "block_type"
+        )
+
+        block_contents = request.form.getlist(
+            "block_content"
+        )
+
+
+        if not title:
 
             flash(
-                "Title and content are required.",
+                "Title is required.",
                 "error"
             )
 
@@ -876,164 +883,385 @@ def create():
                 url_for("create")
             )
 
+
+        if not block_types:
+
+            flash(
+                "Please add at least one content block.",
+                "error"
+            )
+
+            return redirect(
+                url_for("create")
+            )
+
+
+        # ----------------------------------------------------
+        # CREATE POST
+        # ----------------------------------------------------
+
         post = Post(
+
             title=title,
-            content=content,
+
+            content="",
+
             category=category,
+
             post_type=post_type,
-            abstract=abstract if post_type == "research" else None,
+
+            abstract=(
+                abstract
+                if post_type == "research"
+                else None
+            ),
+
             research_authors=(
                 research_authors
                 if post_type == "research"
                 else None
             ),
+
             journal=(
                 journal
                 if post_type == "research"
                 else None
             ),
+
             publication_year=(
                 publication_year
                 if post_type == "research"
                 else None
             ),
+
             doi=(
                 doi
                 if post_type == "research"
                 else None
             ),
+
             external_link=(
                 external_link
                 if post_type == "research"
                 else None
             ),
+
             author_id=current_user.id,
+
             is_hidden=False
+
         )
 
-        db.session.add(
-            post
-        )
+
+        db.session.add(post)
 
         db.session.flush()
 
-        # =========================
-        # MULTIPLE IMAGES
-        # =========================
 
-        images = request.files.getlist(
-            "images"
-        )
+        # ----------------------------------------------------
+        # CREATE BLOCKS
+        # ----------------------------------------------------
 
-        for image in images:
+        text_for_search = []
 
-            if image and image.filename:
+        position = 0
 
-                if allowed_image(
+
+        for index, block_type in enumerate(
+            block_types
+        ):
+
+            block_type = (
+                block_type
+                .strip()
+                .lower()
+            )
+
+
+            if block_type not in [
+                "text",
+                "image",
+                "video"
+            ]:
+
+                continue
+
+
+            # =================================================
+            # TEXT BLOCK
+            # =================================================
+
+            if block_type == "text":
+
+                content = ""
+
+
+                if index < len(
+                    block_contents
+                ):
+
+                    content = (
+                        block_contents[index]
+                        .strip()
+                    )
+
+
+                if not content:
+
+                    continue
+
+
+                block = PostBlock(
+
+                    post_id=post.id,
+
+                    block_type="text",
+
+                    content=content,
+
+                    position=position
+
+                )
+
+
+                db.session.add(block)
+
+
+                text_for_search.append(
+                    content
+                )
+
+
+                position += 1
+
+
+            # =================================================
+            # IMAGE BLOCK
+            # =================================================
+
+            elif block_type == "image":
+
+                file_key = (
+                    f"block_file_{index}"
+                )
+
+
+                image = request.files.get(
+                    file_key
+                )
+
+
+                if (
+                    not image
+                    or not image.filename
+                ):
+
+                    continue
+
+
+                if not allowed_image(
                     image.filename
                 ):
 
-                    filename = secure_filename(
-                        image.filename
+                    flash(
+                        "Invalid image format.",
+                        "error"
                     )
 
-                    image.save(
-                        os.path.join(
-                            app.config["UPLOAD_FOLDER"],
-                            filename
-                        )
+                    db.session.rollback()
+
+                    return redirect(
+                        url_for("create")
                     )
 
-                    post_image = PostImage(
-                        filename=filename,
-                        post_id=post.id
-                    )
-
-                    db.session.add(
-                        post_image
-                    )
-
-        # =========================
-        # SINGLE IMAGE
-        # =========================
-
-        image = request.files.get(
-            "image"
-        )
-
-        if image and image.filename:
-
-            if allowed_image(
-                image.filename
-            ):
 
                 filename = secure_filename(
                     image.filename
                 )
 
-                image.save(
-                    os.path.join(
-                        app.config["UPLOAD_FOLDER"],
+
+                base, extension = (
+                    os.path.splitext(
                         filename
                     )
                 )
 
-                post.image = filename
 
-        # =========================
-        # VIDEO
-        # =========================
+                filename = (
+                    f"{current_user.id}_"
+                    f"{int(datetime.utcnow().timestamp())}_"
+                    f"{index}_"
+                    f"{base}{extension}"
+                )
 
-        video = request.files.get(
-            "video"
-        )
 
-        if video and video.filename:
+                image.save(
+                    os.path.join(
+                        app.config[
+                            "UPLOAD_FOLDER"
+                        ],
+                        filename
+                    )
+                )
 
-            if allowed_video(
-                video.filename
-            ):
+
+                block = PostBlock(
+
+                    post_id=post.id,
+
+                    block_type="image",
+
+                    content=filename,
+
+                    position=position
+
+                )
+
+
+                db.session.add(block)
+
+
+                position += 1
+
+
+            # =================================================
+            # VIDEO BLOCK
+            # =================================================
+
+            elif block_type == "video":
+
+                file_key = (
+                    f"block_file_{index}"
+                )
+
+
+                video = request.files.get(
+                    file_key
+                )
+
+
+                if (
+                    not video
+                    or not video.filename
+                ):
+
+                    continue
+
+
+                if not allowed_video(
+                    video.filename
+                ):
+
+                    flash(
+                        "Invalid video format.",
+                        "error"
+                    )
+
+                    db.session.rollback()
+
+                    return redirect(
+                        url_for("create")
+                    )
+
 
                 filename = secure_filename(
                     video.filename
                 )
 
-                video.save(
-                    os.path.join(
-                        app.config["UPLOAD_FOLDER"],
+
+                base, extension = (
+                    os.path.splitext(
                         filename
                     )
                 )
 
-                post.video = filename
 
-            else:
-
-                flash(
-                    "Invalid video format.",
-                    "error"
+                filename = (
+                    f"{current_user.id}_"
+                    f"{int(datetime.utcnow().timestamp())}_"
+                    f"{index}_"
+                    f"{base}{extension}"
                 )
 
-                db.session.rollback()
 
-                return redirect(
-                    url_for("create")
+                video.save(
+                    os.path.join(
+                        app.config[
+                            "UPLOAD_FOLDER"
+                        ],
+                        filename
+                    )
                 )
 
-        # =========================
-        # RESEARCH PDF
-        # =========================
 
-        research_file = request.files.get(
-            "research_file"
+                block = PostBlock(
+
+                    post_id=post.id,
+
+                    block_type="video",
+
+                    content=filename,
+
+                    position=position
+
+                )
+
+
+                db.session.add(block)
+
+
+                position += 1
+
+
+        # ----------------------------------------------------
+        # CHECK CONTENT
+        # ----------------------------------------------------
+
+        if position == 0:
+
+            db.session.rollback()
+
+            flash(
+                "Please add valid content to your post.",
+                "error"
+            )
+
+            return redirect(
+                url_for("create")
+            )
+
+
+        # ----------------------------------------------------
+        # OLD CONTENT FIELD
+        #
+        # Keep text here for search/compatibility.
+        # ----------------------------------------------------
+
+        post.content = "\n\n".join(
+            text_for_search
         )
 
-        if research_file and research_file.filename:
 
-            if post_type != "research":
+        # ----------------------------------------------------
+        # OLD FEATURED IMAGE
+        # ----------------------------------------------------
+
+        featured_image = request.files.get(
+            "image"
+        )
+
+
+        if (
+            featured_image
+            and featured_image.filename
+        ):
+
+            if not allowed_image(
+                featured_image.filename
+            ):
 
                 flash(
-                    "PDF files can only be uploaded for research articles.",
+                    "Invalid featured image format.",
                     "error"
                 )
 
@@ -1043,42 +1271,180 @@ def create():
                     url_for("create")
                 )
 
-            if allowed_document(
-                research_file.filename
+
+            filename = secure_filename(
+                featured_image.filename
+            )
+
+
+            base, extension = (
+                os.path.splitext(
+                    filename
+                )
+            )
+
+
+            filename = (
+                f"{current_user.id}_"
+                f"{int(datetime.utcnow().timestamp())}_"
+                f"featured_"
+                f"{base}{extension}"
+            )
+
+
+            featured_image.save(
+                os.path.join(
+                    app.config[
+                        "UPLOAD_FOLDER"
+                    ],
+                    filename
+                )
+            )
+
+
+            post.image = filename
+
+
+        # ----------------------------------------------------
+        # OLD FEATURED VIDEO
+        # ----------------------------------------------------
+
+        featured_video = request.files.get(
+            "video"
+        )
+
+
+        if (
+            featured_video
+            and featured_video.filename
+        ):
+
+            if not allowed_video(
+                featured_video.filename
             ):
+
+                flash(
+                    "Invalid featured video format.",
+                    "error"
+                )
+
+                db.session.rollback()
+
+                return redirect(
+                    url_for("create")
+                )
+
+
+            filename = secure_filename(
+                featured_video.filename
+            )
+
+
+            base, extension = (
+                os.path.splitext(
+                    filename
+                )
+            )
+
+
+            filename = (
+                f"{current_user.id}_"
+                f"{int(datetime.utcnow().timestamp())}_"
+                f"featured_"
+                f"{base}{extension}"
+            )
+
+
+            featured_video.save(
+                os.path.join(
+                    app.config[
+                        "UPLOAD_FOLDER"
+                    ],
+                    filename
+                )
+            )
+
+
+            post.video = filename
+
+
+        # ----------------------------------------------------
+        # RESEARCH PDF
+        # ----------------------------------------------------
+
+        if post_type == "research":
+
+            research_file = request.files.get(
+                "research_file"
+            )
+
+
+            if (
+                research_file
+                and research_file.filename
+            ):
+
+                if not allowed_document(
+                    research_file.filename
+                ):
+
+                    flash(
+                        "Only PDF research files are allowed.",
+                        "error"
+                    )
+
+                    db.session.rollback()
+
+                    return redirect(
+                        url_for("create")
+                    )
+
 
                 filename = secure_filename(
                     research_file.filename
                 )
 
-                research_file.save(
-                    os.path.join(
-                        app.config["UPLOAD_FOLDER"],
+
+                base, extension = (
+                    os.path.splitext(
                         filename
                     )
                 )
 
+
+                filename = (
+                    f"{current_user.id}_"
+                    f"{int(datetime.utcnow().timestamp())}_"
+                    f"research_"
+                    f"{base}{extension}"
+                )
+
+
+                research_file.save(
+                    os.path.join(
+                        app.config[
+                            "UPLOAD_FOLDER"
+                        ],
+                        filename
+                    )
+                )
+
+
                 post.research_file = filename
 
-            else:
 
-                flash(
-                    "Only PDF research files are allowed.",
-                    "error"
-                )
-
-                db.session.rollback()
-
-                return redirect(
-                    url_for("create")
-                )
+        # ----------------------------------------------------
+        # SAVE
+        # ----------------------------------------------------
 
         db.session.commit()
+
 
         flash(
             "Post published successfully.",
             "success"
         )
+
 
         return redirect(
             url_for(
@@ -1087,50 +1453,44 @@ def create():
             )
         )
 
+
     return render_template(
         "create.html"
     )
 
 
-# =========================
+# ============================================================
 # VIEW POST
-# =========================
+# ============================================================
 
-@app.route(
-    "/post/<int:id>"
-)
+@app.route("/post/<int:id>")
 def post(id):
 
     post = Post.query.get_or_404(
         id
     )
 
+
     if post.is_hidden:
 
-        if not current_user.is_authenticated:
-
-            flash(
-                "This post is unavailable.",
-                "error"
-            )
-
-            return redirect(
-                url_for("home")
-            )
-
         if (
-            post.author_id != current_user.id
-            and not admin_required()
+            not current_user.is_authenticated
+            or (
+                current_user.id
+                != post.author_id
+                and not current_user.is_admin
+            )
         ):
 
             flash(
-                "This post is unavailable.",
+                "This post is currently hidden.",
                 "error"
             )
 
             return redirect(
                 url_for("home")
             )
+
 
     return render_template(
         "post.html",
@@ -1138,24 +1498,27 @@ def post(id):
     )
 
 
-# =========================
+# ============================================================
 # LIKE
-# =========================
+# ============================================================
 
 @app.route(
-    "/like/<int:id>"
+    "/like/<int:post_id>",
+    methods=["POST"]
 )
 @login_required
-def like(id):
+def like(post_id):
 
     post = Post.query.get_or_404(
-        id
+        post_id
     )
+
 
     existing_like = Like.query.filter_by(
         user_id=current_user.id,
         post_id=post.id
     ).first()
+
 
     if existing_like:
 
@@ -1174,81 +1537,122 @@ def like(id):
             new_like
         )
 
+
         if post.author_id != current_user.id:
 
-            create_notification(
-                post.author_id,
-                f"{current_user.username} liked your post '{post.title}'.",
-                post_id=post.id,
-                notification_type="like"
+            notification = Notification(
+                user_id=post.author_id,
+                message=(
+                    f"{current_user.username} "
+                    f"liked your post."
+                ),
+                post_id=post.id
             )
+
+            db.session.add(
+                notification
+            )
+
 
     db.session.commit()
 
+
     return redirect(
-        url_for(
+        request.referrer
+        or url_for(
             "post",
-            id=id
+            id=post.id
         )
     )
 
 
-# =========================
+# ============================================================
 # COMMENT
-# =========================
+# ============================================================
 
 @app.route(
-    "/comment/<int:id>",
+    "/comment/<int:post_id>",
     methods=["POST"]
 )
 @login_required
-def comment(id):
+def comment(post_id):
 
     post = Post.query.get_or_404(
-        id
+        post_id
     )
+
 
     content = request.form.get(
         "content",
         ""
     ).strip()
 
-    if content:
 
-        new_comment = Comment(
-            content=content,
-            user_id=current_user.id,
-            post_id=post.id,
-            parent_id=None,
-            is_hidden=False
+    if not content:
+
+        flash(
+            "Comment cannot be empty.",
+            "error"
+        )
+
+        return redirect(
+            url_for(
+                "post",
+                id=post.id
+            )
+        )
+
+
+    new_comment = Comment(
+
+        content=content,
+
+        user_id=current_user.id,
+
+        post_id=post.id
+
+    )
+
+
+    db.session.add(
+        new_comment
+    )
+
+
+    if post.author_id != current_user.id:
+
+        notification = Notification(
+
+            user_id=post.author_id,
+
+            message=(
+                f"{current_user.username} "
+                f"commented on your post."
+            ),
+
+            post_id=post.id
+
         )
 
         db.session.add(
-            new_comment
+            notification
         )
 
-        if post.author_id != current_user.id:
 
-            create_notification(
-                post.author_id,
-                f"{current_user.username} commented on your post '{post.title}'.",
-                post_id=post.id,
-                notification_type="comment"
-            )
+    db.session.commit()
 
-        db.session.commit()
 
     return redirect(
         url_for(
             "post",
-            id=id
+            id=post.id
         )
     )
 
 
-# =========================
+# ============================================================
 # REPLY
-# =========================
+# ============================================================
 
 @app.route(
     "/reply/<int:comment_id>",
@@ -1261,12 +1665,19 @@ def reply(comment_id):
         comment_id
     )
 
+
     content = request.form.get(
         "content",
         ""
     ).strip()
 
+
     if not content:
+
+        flash(
+            "Reply cannot be empty.",
+            "error"
+        )
 
         return redirect(
             url_for(
@@ -1275,28 +1686,50 @@ def reply(comment_id):
             )
         )
 
+
     new_reply = Comment(
+
         content=content,
+
         user_id=current_user.id,
+
         post_id=parent_comment.post_id,
-        parent_id=parent_comment.id,
-        is_hidden=False
+
+        parent_id=parent_comment.id
+
     )
+
 
     db.session.add(
         new_reply
     )
 
-    if parent_comment.user_id != current_user.id:
 
-        create_notification(
-            parent_comment.user_id,
-            f"{current_user.username} replied to your comment.",
-            post_id=parent_comment.post_id,
-            notification_type="reply"
+    if (
+        parent_comment.user_id
+        != current_user.id
+    ):
+
+        notification = Notification(
+
+            user_id=parent_comment.user_id,
+
+            message=(
+                f"{current_user.username} "
+                f"replied to your comment."
+            ),
+
+            post_id=parent_comment.post_id
+
         )
 
+        db.session.add(
+            notification
+        )
+
+
     db.session.commit()
+
 
     return redirect(
         url_for(
@@ -1306,19 +1739,25 @@ def reply(comment_id):
     )
 
 
-# =========================
+# ============================================================
 # NOTIFICATIONS
-# =========================
+# ============================================================
 
 @app.route("/notifications")
 @login_required
 def notifications():
 
-    notifications_list = Notification.query.filter_by(
-        user_id=current_user.id
-    ).order_by(
-        Notification.id.desc()
-    ).all()
+    notifications_list = (
+        Notification.query
+        .filter_by(
+            user_id=current_user.id
+        )
+        .order_by(
+            Notification.created_at.desc()
+        )
+        .all()
+    )
+
 
     return render_template(
         "notifications.html",
@@ -1326,20 +1765,30 @@ def notifications():
     )
 
 
+# ============================================================
+# MARK NOTIFICATION AS READ
+# ============================================================
+
 @app.route(
-    "/notification/read/<int:id>"
+    "/notification/<int:id>/read"
 )
 @login_required
 def notification_read(id):
 
-    notification = Notification.query.filter_by(
-        id=id,
-        user_id=current_user.id
-    ).first_or_404()
+    notification = (
+        Notification.query
+        .filter_by(
+            id=id,
+            user_id=current_user.id
+        )
+        .first_or_404()
+    )
+
 
     notification.is_read = True
 
     db.session.commit()
+
 
     if notification.post_id:
 
@@ -1350,14 +1799,17 @@ def notification_read(id):
             )
         )
 
+
     return redirect(
-        url_for("notifications")
+        url_for(
+            "notifications"
+        )
     )
 
 
-# =========================
+# ============================================================
 # EDIT POST
-# =========================
+# ============================================================
 
 @app.route(
     "/edit/<int:id>",
@@ -1370,76 +1822,16 @@ def edit(id):
         id
     )
 
+
+    # --------------------------------------------------------
+    # AUTHOR CHECK
+    # --------------------------------------------------------
+
     if post.author_id != current_user.id:
 
         flash(
-            "You cannot edit this post.",
+            "You are not allowed to edit this post.",
             "error"
-        )
-
-        return redirect(
-            url_for("home")
-        )
-
-    if request.method == "POST":
-
-        post.title = request.form.get(
-            "title",
-            ""
-        ).strip()
-
-        post.content = request.form.get(
-            "content",
-            ""
-        ).strip()
-
-        post.category = request.form.get(
-            "category",
-            ""
-        ).strip()
-
-        post_type = request.form.get(
-            "post_type",
-            post.post_type or "regular"
-        ).strip().lower()
-
-        post.post_type = post_type
-
-        post.abstract = request.form.get(
-            "abstract",
-            ""
-        ).strip() if post_type == "research" else None
-
-        post.research_authors = request.form.get(
-            "research_authors",
-            ""
-        ).strip() if post_type == "research" else None
-
-        post.journal = request.form.get(
-            "journal",
-            ""
-        ).strip() if post_type == "research" else None
-
-        post.publication_year = request.form.get(
-            "publication_year",
-            ""
-        ).strip() if post_type == "research" else None
-
-        post.doi = request.form.get(
-            "doi",
-            ""
-        ).strip() if post_type == "research" else None
-
-        post.external_link = request.form.get(
-            "external_link",
-            ""
-        ).strip() if post_type == "research" else None
-
-        db.session.commit()
-
-        flash(
-            "Post updated successfully.",
-            "success"
         )
 
         return redirect(
@@ -1449,18 +1841,536 @@ def edit(id):
             )
         )
 
+
+    if request.method == "POST":
+
+        title = request.form.get(
+            "title",
+            ""
+        ).strip()
+
+        category = request.form.get(
+            "category",
+            ""
+        ).strip()
+
+
+        if not title:
+
+            flash(
+                "Title is required.",
+                "error"
+            )
+
+            return redirect(
+                url_for(
+                    "edit",
+                    id=post.id
+                )
+            )
+
+
+        # ----------------------------------------------------
+        # BASIC POST INFORMATION
+        # ----------------------------------------------------
+
+        post.title = title
+
+        post.category = category
+
+
+        # ----------------------------------------------------
+        # GET BLOCK DATA
+        # ----------------------------------------------------
+
+        block_types = request.form.getlist(
+            "block_type"
+        )
+
+        block_contents = request.form.getlist(
+            "block_content"
+        )
+
+
+        if not block_types:
+
+            flash(
+                "Please add at least one content block.",
+                "error"
+            )
+
+            return redirect(
+                url_for(
+                    "edit",
+                    id=post.id
+                )
+            )
+
+
+        # ----------------------------------------------------
+        # SAVE OLD BLOCK FILE NAMES
+        #
+        # This allows us to remove files later if necessary.
+        # ----------------------------------------------------
+
+        old_block_files = []
+
+        for old_block in post.blocks:
+
+            if old_block.block_type in [
+                "image",
+                "video"
+            ]:
+
+                if old_block.content:
+
+                    old_block_files.append(
+                        old_block.content
+                    )
+
+
+        # ----------------------------------------------------
+        # DELETE OLD BLOCK RECORDS
+        # ----------------------------------------------------
+
+        for old_block in list(
+            post.blocks
+        ):
+
+            db.session.delete(
+                old_block
+            )
+
+
+        db.session.flush()
+
+
+        # ----------------------------------------------------
+        # CREATE NEW BLOCKS
+        # ----------------------------------------------------
+
+        text_for_search = []
+
+        position = 0
+
+        kept_files = []
+
+
+        for index, block_type in enumerate(
+            block_types
+        ):
+
+            block_type = (
+                block_type
+                .strip()
+                .lower()
+            )
+
+
+            if block_type not in [
+                "text",
+                "image",
+                "video"
+            ]:
+
+                continue
+
+
+            # =================================================
+            # TEXT
+            # =================================================
+
+            if block_type == "text":
+
+                content = ""
+
+
+                if index < len(
+                    block_contents
+                ):
+
+                    content = (
+                        block_contents[index]
+                        .strip()
+                    )
+
+
+                if not content:
+
+                    continue
+
+
+                block = PostBlock(
+
+                    post_id=post.id,
+
+                    block_type="text",
+
+                    content=content,
+
+                    position=position
+
+                )
+
+
+                db.session.add(
+                    block
+                )
+
+
+                text_for_search.append(
+                    content
+                )
+
+
+                position += 1
+
+
+            # =================================================
+            # IMAGE
+            # =================================================
+
+            elif block_type == "image":
+
+                old_filename = ""
+
+
+                if index < len(
+                    block_contents
+                ):
+
+                    old_filename = (
+                        block_contents[index]
+                        .strip()
+                    )
+
+
+                file_key = (
+                    f"block_file_{index}"
+                )
+
+
+                image = request.files.get(
+                    file_key
+                )
+
+
+                filename = old_filename
+
+
+                # --------------------------------------------
+                # NEW IMAGE
+                # --------------------------------------------
+
+                if (
+                    image
+                    and image.filename
+                ):
+
+                    if not allowed_image(
+                        image.filename
+                    ):
+
+                        flash(
+                            "Invalid image format.",
+                            "error"
+                        )
+
+                        db.session.rollback()
+
+                        return redirect(
+                            url_for(
+                                "edit",
+                                id=post.id
+                            )
+                        )
+
+
+                    filename = secure_filename(
+                        image.filename
+                    )
+
+
+                    base, extension = (
+                        os.path.splitext(
+                            filename
+                        )
+                    )
+
+
+                    filename = (
+                        f"{current_user.id}_"
+                        f"{int(datetime.utcnow().timestamp())}_"
+                        f"edit_{index}_"
+                        f"{base}{extension}"
+                    )
+
+
+                    image.save(
+                        os.path.join(
+                            app.config[
+                                "UPLOAD_FOLDER"
+                            ],
+                            filename
+                        )
+                    )
+
+
+                # --------------------------------------------
+                # NO IMAGE
+                # --------------------------------------------
+
+                if not filename:
+
+                    continue
+
+
+                block = PostBlock(
+
+                    post_id=post.id,
+
+                    block_type="image",
+
+                    content=filename,
+
+                    position=position
+
+                )
+
+
+                db.session.add(
+                    block
+                )
+
+
+                kept_files.append(
+                    filename
+                )
+
+
+                position += 1
+
+
+            # =================================================
+            # VIDEO
+            # =================================================
+
+            elif block_type == "video":
+
+                old_filename = ""
+
+
+                if index < len(
+                    block_contents
+                ):
+
+                    old_filename = (
+                        block_contents[index]
+                        .strip()
+                    )
+
+
+                file_key = (
+                    f"block_file_{index}"
+                )
+
+
+                video = request.files.get(
+                    file_key
+                )
+
+
+                filename = old_filename
+
+
+                # --------------------------------------------
+                # NEW VIDEO
+                # --------------------------------------------
+
+                if (
+                    video
+                    and video.filename
+                ):
+
+                    if not allowed_video(
+                        video.filename
+                    ):
+
+                        flash(
+                            "Invalid video format.",
+                            "error"
+                        )
+
+                        db.session.rollback()
+
+                        return redirect(
+                            url_for(
+                                "edit",
+                                id=post.id
+                            )
+                        )
+
+
+                    filename = secure_filename(
+                        video.filename
+                    )
+
+
+                    base, extension = (
+                        os.path.splitext(
+                            filename
+                        )
+                    )
+
+
+                    filename = (
+                        f"{current_user.id}_"
+                        f"{int(datetime.utcnow().timestamp())}_"
+                        f"edit_{index}_"
+                        f"{base}{extension}"
+                    )
+
+
+                    video.save(
+                        os.path.join(
+                            app.config[
+                                "UPLOAD_FOLDER"
+                            ],
+                            filename
+                        )
+                    )
+
+
+                # --------------------------------------------
+                # NO VIDEO
+                # --------------------------------------------
+
+                if not filename:
+
+                    continue
+
+
+                block = PostBlock(
+
+                    post_id=post.id,
+
+                    block_type="video",
+
+                    content=filename,
+
+                    position=position
+
+                )
+
+
+                db.session.add(
+                    block
+                )
+
+
+                kept_files.append(
+                    filename
+                )
+
+
+                position += 1
+
+
+        # ----------------------------------------------------
+        # MAKE SURE CONTENT EXISTS
+        # ----------------------------------------------------
+
+        if position == 0:
+
+            db.session.rollback()
+
+            flash(
+                "Please add at least one valid content block.",
+                "error"
+            )
+
+            return redirect(
+                url_for(
+                    "edit",
+                    id=post.id
+                )
+            )
+
+
+        # ----------------------------------------------------
+        # UPDATE LEGACY CONTENT FIELD
+        # ----------------------------------------------------
+
+        post.content = "\n\n".join(
+            text_for_search
+        )
+
+
+        # ----------------------------------------------------
+        # DELETE UNUSED OLD BLOCK FILES
+        # ----------------------------------------------------
+
+        for filename in old_block_files:
+
+            if filename not in kept_files:
+
+                file_path = os.path.join(
+                    app.config[
+                        "UPLOAD_FOLDER"
+                    ],
+                    filename
+                )
+
+
+                if os.path.exists(
+                    file_path
+                ):
+
+                    try:
+
+                        os.remove(
+                            file_path
+                        )
+
+                    except OSError:
+
+                        pass
+
+
+        # ----------------------------------------------------
+        # SAVE
+        # ----------------------------------------------------
+
+        db.session.commit()
+
+
+        flash(
+            "Post updated successfully.",
+            "success"
+        )
+
+
+        return redirect(
+            url_for(
+                "post",
+                id=post.id
+            )
+        )
+
+
     return render_template(
         "edit.html",
         post=post
     )
 
 
-# =========================
+# ============================================================
 # DELETE POST
-# =========================
+# ============================================================
 
 @app.route(
-    "/delete/<int:id>"
+    "/delete/<int:id>",
+    methods=["POST"]
 )
 @login_required
 def delete(id):
@@ -1469,19 +2379,122 @@ def delete(id):
         id
     )
 
+
     if (
         post.author_id != current_user.id
-        and not admin_required()
+        and not current_user.is_admin
     ):
 
         flash(
-            "You cannot delete this post.",
+            "You are not allowed to delete this post.",
             "error"
         )
 
         return redirect(
-            url_for("home")
+            url_for(
+                "post",
+                id=post.id
+            )
         )
+
+
+    # --------------------------------------------------------
+    # DELETE BLOCK FILES
+    # --------------------------------------------------------
+
+    for block in post.blocks:
+
+        if block.content:
+
+            if block.block_type in [
+                "image",
+                "video"
+            ]:
+
+                file_path = os.path.join(
+                    app.config[
+                        "UPLOAD_FOLDER"
+                    ],
+                    block.content
+                )
+
+
+                if os.path.exists(
+                    file_path
+                ):
+
+                    try:
+
+                        os.remove(
+                            file_path
+                        )
+
+                    except OSError:
+
+                        pass
+
+
+    # --------------------------------------------------------
+    # DELETE LEGACY MEDIA
+    # --------------------------------------------------------
+
+    legacy_files = []
+
+
+    if post.image:
+
+        legacy_files.append(
+            post.image
+        )
+
+
+    if post.video:
+
+        legacy_files.append(
+            post.video
+        )
+
+
+    if post.research_file:
+
+        legacy_files.append(
+            post.research_file
+        )
+
+
+    for image in post.images:
+
+        if image.filename:
+
+            legacy_files.append(
+                image.filename
+            )
+
+
+    for filename in legacy_files:
+
+        file_path = os.path.join(
+            app.config[
+                "UPLOAD_FOLDER"
+            ],
+            filename
+        )
+
+
+        if os.path.exists(
+            file_path
+        ):
+
+            try:
+
+                os.remove(
+                    file_path
+                )
+
+            except OSError:
+
+                pass
+
 
     db.session.delete(
         post
@@ -1489,28 +2502,30 @@ def delete(id):
 
     db.session.commit()
 
+
     flash(
         "Post deleted successfully.",
         "success"
     )
+
 
     return redirect(
         url_for("home")
     )
 
 
-# =========================
+# ============================================================
 # ADMIN
-# =========================
+# ============================================================
 
 @app.route("/admin")
 @login_required
 def admin():
 
-    if not admin_required():
+    if not current_user.is_admin:
 
         flash(
-            "Administrator access required.",
+            "Admin access required.",
             "error"
         )
 
@@ -1518,17 +2533,33 @@ def admin():
             url_for("home")
         )
 
-    users = User.query.order_by(
-        User.id.desc()
-    ).all()
 
-    posts = Post.query.order_by(
-        Post.id.desc()
-    ).all()
+    users = (
+        User.query
+        .order_by(
+            User.created_at.desc()
+        )
+        .all()
+    )
 
-    comments = Comment.query.order_by(
-        Comment.id.desc()
-    ).all()
+
+    posts = (
+        Post.query
+        .order_by(
+            Post.created_at.desc()
+        )
+        .all()
+    )
+
+
+    comments = (
+        Comment.query
+        .order_by(
+            Comment.created_at.desc()
+        )
+        .all()
+    )
+
 
     return render_template(
         "admin.html",
@@ -1538,20 +2569,21 @@ def admin():
     )
 
 
-# =========================
+# ============================================================
 # ADMIN TOGGLE USER
-# =========================
+# ============================================================
 
 @app.route(
-    "/admin/user/<int:user_id>/toggle"
+    "/admin/user/<int:user_id>/toggle",
+    methods=["POST"]
 )
 @login_required
 def admin_toggle_user(user_id):
 
-    if not admin_required():
+    if not current_user.is_admin:
 
         flash(
-            "Administrator access required.",
+            "Admin access required.",
             "error"
         )
 
@@ -1559,14 +2591,16 @@ def admin_toggle_user(user_id):
             url_for("home")
         )
 
+
     user = User.query.get_or_404(
         user_id
     )
 
+
     if user.id == current_user.id:
 
         flash(
-            "You cannot remove your own administrator access.",
+            "You cannot change your own admin status.",
             "error"
         )
 
@@ -1574,39 +2608,44 @@ def admin_toggle_user(user_id):
             url_for("admin")
         )
 
+
     user.is_admin = not user.is_admin
 
     db.session.commit()
 
-    flash(
-        "User administrator status updated.",
-        "success"
-    )
 
     return redirect(
         url_for("admin")
     )
 
 
-# =========================
+# ============================================================
 # ADMIN DELETE USER
-# =========================
+# ============================================================
 
 @app.route(
-    "/admin/user/<int:user_id>/delete"
+    "/admin/user/<int:user_id>/delete",
+    methods=["POST"]
 )
 @login_required
 def admin_delete_user(user_id):
 
-    if not admin_required():
+    if not current_user.is_admin:
+
+        flash(
+            "Admin access required.",
+            "error"
+        )
 
         return redirect(
             url_for("home")
         )
 
+
     user = User.query.get_or_404(
         user_id
     )
+
 
     if user.id == current_user.id:
 
@@ -1619,75 +2658,277 @@ def admin_delete_user(user_id):
             url_for("admin")
         )
 
+
+    # Delete files belonging to user's posts
+    for post in user.posts:
+
+        for block in post.blocks:
+
+            if (
+                block.content
+                and block.block_type in [
+                    "image",
+                    "video"
+                ]
+            ):
+
+                file_path = os.path.join(
+                    app.config[
+                        "UPLOAD_FOLDER"
+                    ],
+                    block.content
+                )
+
+
+                if os.path.exists(
+                    file_path
+                ):
+
+                    try:
+
+                        os.remove(
+                            file_path
+                        )
+
+                    except OSError:
+
+                        pass
+
+
+        files_to_delete = []
+
+
+        if post.image:
+
+            files_to_delete.append(
+                post.image
+            )
+
+
+        if post.video:
+
+            files_to_delete.append(
+                post.video
+            )
+
+
+        if post.research_file:
+
+            files_to_delete.append(
+                post.research_file
+            )
+
+
+        for image in post.images:
+
+            if image.filename:
+
+                files_to_delete.append(
+                    image.filename
+                )
+
+
+        for filename in files_to_delete:
+
+            file_path = os.path.join(
+                app.config[
+                    "UPLOAD_FOLDER"
+                ],
+                filename
+            )
+
+
+            if os.path.exists(
+                file_path
+            ):
+
+                try:
+
+                    os.remove(
+                        file_path
+                    )
+
+                except OSError:
+
+                    pass
+
+
     db.session.delete(
         user
     )
 
     db.session.commit()
 
+
     flash(
-        "User deleted.",
+        "User deleted successfully.",
         "success"
     )
+
 
     return redirect(
         url_for("admin")
     )
 
 
-# =========================
-# ADMIN HIDE / SHOW POST
-# =========================
+# ============================================================
+# ADMIN HIDE POST
+# ============================================================
 
 @app.route(
-    "/admin/post/<int:post_id>/hide"
+    "/admin/post/<int:post_id>/hide",
+    methods=["POST"]
 )
 @login_required
 def admin_hide_post(post_id):
 
-    if not admin_required():
+    if not current_user.is_admin:
+
+        flash(
+            "Admin access required.",
+            "error"
+        )
 
         return redirect(
             url_for("home")
         )
 
+
     post = Post.query.get_or_404(
         post_id
     )
+
 
     post.is_hidden = not post.is_hidden
 
     db.session.commit()
 
-    flash(
-        "Post visibility updated.",
-        "success"
-    )
 
     return redirect(
         url_for("admin")
     )
 
 
-# =========================
+# ============================================================
 # ADMIN DELETE POST
-# =========================
+# ============================================================
 
 @app.route(
-    "/admin/post/<int:post_id>/delete"
+    "/admin/post/<int:post_id>/delete",
+    methods=["POST"]
 )
 @login_required
 def admin_delete_post(post_id):
 
-    if not admin_required():
+    if not current_user.is_admin:
+
+        flash(
+            "Admin access required.",
+            "error"
+        )
 
         return redirect(
             url_for("home")
         )
 
+
     post = Post.query.get_or_404(
         post_id
     )
+
+
+    # Delete block files
+    for block in post.blocks:
+
+        if (
+            block.content
+            and block.block_type in [
+                "image",
+                "video"
+            ]
+        ):
+
+            file_path = os.path.join(
+                app.config[
+                    "UPLOAD_FOLDER"
+                ],
+                block.content
+            )
+
+
+            if os.path.exists(
+                file_path
+            ):
+
+                try:
+
+                    os.remove(
+                        file_path
+                    )
+
+                except OSError:
+
+                    pass
+
+
+    # Delete legacy files
+    files_to_delete = []
+
+
+    if post.image:
+
+        files_to_delete.append(
+            post.image
+        )
+
+
+    if post.video:
+
+        files_to_delete.append(
+            post.video
+        )
+
+
+    if post.research_file:
+
+        files_to_delete.append(
+            post.research_file
+        )
+
+
+    for image in post.images:
+
+        if image.filename:
+
+            files_to_delete.append(
+                image.filename
+            )
+
+
+    for filename in files_to_delete:
+
+        file_path = os.path.join(
+            app.config[
+                "UPLOAD_FOLDER"
+            ],
+            filename
+        )
+
+
+        if os.path.exists(
+            file_path
+        ):
+
+            try:
+
+                os.remove(
+                    file_path
+                )
+
+            except OSError:
+
+                pass
+
 
     db.session.delete(
         post
@@ -1695,69 +2936,85 @@ def admin_delete_post(post_id):
 
     db.session.commit()
 
+
     flash(
-        "Post deleted.",
+        "Post deleted successfully.",
         "success"
     )
+
 
     return redirect(
         url_for("admin")
     )
 
 
-# =========================
-# ADMIN HIDE / SHOW COMMENT
-# =========================
+# ============================================================
+# ADMIN HIDE COMMENT
+# ============================================================
 
 @app.route(
-    "/admin/comment/<int:comment_id>/hide"
+    "/admin/comment/<int:comment_id>/hide",
+    methods=["POST"]
 )
 @login_required
 def admin_hide_comment(comment_id):
 
-    if not admin_required():
+    if not current_user.is_admin:
+
+        flash(
+            "Admin access required.",
+            "error"
+        )
 
         return redirect(
             url_for("home")
         )
 
+
     comment = Comment.query.get_or_404(
         comment_id
     )
 
-    comment.is_hidden = not comment.is_hidden
 
-    db.session.commit()
+    if hasattr(comment, "is_hidden"):
 
-    flash(
-        "Comment visibility updated.",
-        "success"
-    )
+        comment.is_hidden = not comment.is_hidden
+
+        db.session.commit()
+
 
     return redirect(
         url_for("admin")
     )
 
 
-# =========================
+# ============================================================
 # ADMIN DELETE COMMENT
-# =========================
+# ============================================================
 
 @app.route(
-    "/admin/comment/<int:comment_id>/delete"
+    "/admin/comment/<int:comment_id>/delete",
+    methods=["POST"]
 )
 @login_required
 def admin_delete_comment(comment_id):
 
-    if not admin_required():
+    if not current_user.is_admin:
+
+        flash(
+            "Admin access required.",
+            "error"
+        )
 
         return redirect(
             url_for("home")
         )
 
+
     comment = Comment.query.get_or_404(
         comment_id
     )
+
 
     db.session.delete(
         comment
@@ -1765,45 +3022,63 @@ def admin_delete_comment(comment_id):
 
     db.session.commit()
 
+
     flash(
-        "Comment deleted.",
+        "Comment deleted successfully.",
         "success"
     )
+
 
     return redirect(
         url_for("admin")
     )
 
 
-# =========================
+# ============================================================
 # ROUTES
-# =========================
+# ============================================================
 
 @app.route("/routes")
 def routes():
 
-    return "<br>".join(
-        str(rule)
-        for rule in app.url_map.iter_rules()
+    route_list = []
+
+
+    for rule in app.url_map.iter_rules():
+
+        route_list.append(
+            {
+                "endpoint": rule.endpoint,
+                "methods": sorted(
+                    rule.methods
+                ),
+                "path": str(rule)
+            }
+        )
+
+
+    return render_template(
+        "routes.html",
+        routes=route_list
     )
 
 
-# =========================
-# START
-# =========================
+# ============================================================
+# START APPLICATION
+# ============================================================
+
+with app.app_context():
+
+    db.create_all()
+
+    update_database()
+
 
 if __name__ == "__main__":
 
-    with app.app_context():
-
-        db.create_all()
-
-        update_database()
-
-    print("===================================")
-    print("MYBLOG IS RUNNING")
-    print("===================================")
-    print("http://127.0.0.1:5000")
+    print(
+        "MY UPDATED APP IS RUNNING."
+    )
 
     app.run(
         debug=True
