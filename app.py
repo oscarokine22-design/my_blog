@@ -288,11 +288,21 @@ def update_database():
 @app.route("/")
 def home():
 
+    page = request.args.get(
+        "page",
+        1,
+        type=int
+    )
+
     posts = (
         Post.query
         .filter_by(is_hidden=False)
         .order_by(Post.created_at.desc())
-        .all()
+        .paginate(
+            page=page,
+            per_page=10,
+            error_out=False
+        )
     )
 
     return render_template(
@@ -1041,15 +1051,16 @@ def create():
 
             elif block_type == "image":
 
-                file_key = (
-                    f"block_file_{index}"
-                )
+                image = None
 
+                # Find the file belonging to this block.
+                # The frontend names media files using block
+                # positions, but we also check the uploaded
+                # file list directly for reliability.
 
-                image = request.files.get(
-                    file_key
-                )
+                file_key = f"block_file_{index}"
 
+                image = request.files.get(file_key)
 
                 if (
                     not image
@@ -1059,12 +1070,15 @@ def create():
                     continue
 
 
+                filename_original = image.filename.strip()
+
+
                 if not allowed_image(
-                    image.filename
+                    filename_original
                 ):
 
                     flash(
-                        "Invalid image format.",
+                        f"Invalid image format: {filename_original}",
                         "error"
                     )
 
@@ -1076,7 +1090,7 @@ def create():
 
 
                 filename = secure_filename(
-                    image.filename
+                    filename_original
                 )
 
 
@@ -1120,7 +1134,6 @@ def create():
 
                 db.session.add(block)
 
-
                 position += 1
 
 
@@ -1130,10 +1143,9 @@ def create():
 
             elif block_type == "video":
 
-                file_key = (
-                    f"block_file_{index}"
-                )
+                video = None
 
+                file_key = f"block_file_{index}"
 
                 video = request.files.get(
                     file_key
@@ -1148,12 +1160,15 @@ def create():
                     continue
 
 
+                filename_original = video.filename.strip()
+
+
                 if not allowed_video(
-                    video.filename
+                    filename_original
                 ):
 
                     flash(
-                        "Invalid video format.",
+                        f"Invalid video format: {filename_original}",
                         "error"
                     )
 
@@ -1165,7 +1180,7 @@ def create():
 
 
                 filename = secure_filename(
-                    video.filename
+                    filename_original
                 )
 
 
@@ -1209,9 +1224,7 @@ def create():
 
                 db.session.add(block)
 
-
                 position += 1
-
 
         # ----------------------------------------------------
         # CHECK CONTENT

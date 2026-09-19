@@ -1255,7 +1255,7 @@ button:hover,
 /* MAIN FORM */
 
 .create-post-form {
-    background: #ffffff;
+    background: rgb(240, 238, 241);
 
     border: 1px solid #e3e7f3;
 
@@ -2833,4 +2833,83 @@ button:hover,
         text-align: center;
     }
 
+}
+
+/* =========================================
+   INTERLEAVED POST BLOCKS
+========================================= */
+
+.post-blocks {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin: 0;
+    padding: 0;
+}
+
+.post-block {
+    margin: 0;
+    padding: 0;
+}
+
+.post-block-text {
+    margin: 0;
+    padding: 0;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 17px;
+    line-height: 1.7;
+    color: #505a76;
+}
+
+.post-block-image {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    max-height: 700px;
+    object-fit: contain;
+    border-radius: 12px;
+    margin: 0;
+}
+
+.post-block-video {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    max-height: 700px;
+    border-radius: 12px;
+    margin: 0;
+    background: #000000;
+}
+
+/* Make the first block start directly at the top */
+.post-block:first-child {
+    margin-top: 0;
+    padding-top: 0;
+}
+
+.post-block:first-child .post-block-text {
+    margin-top: 0;
+    padding-top: 0;
+}
+
+
+/* MOBILE */
+
+@media (max-width: 600px) {
+
+    .post-blocks {
+        gap: 14px;
+    }
+
+    .post-block-text {
+        font-size: 16px;
+        line-height: 1.65;
+    }
+
+    .post-block-image,
+    .post-block-video {
+        max-height: 500px;
+        border-radius: 10px;
+    }
 }
