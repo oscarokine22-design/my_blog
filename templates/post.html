@@ -600,168 +600,41 @@
 
 
     <!-- =====================================================
-         RESEARCH INFORMATION
-         ===================================================== -->
+     RESEARCH ARTICLE
+     ===================================================== -->
 
-    {% if post.post_type == "research" %}
+{% if post.post_type == "research" %}
 
-        <div class="research-section">
+    <div class="research-section">
 
-            <h3>
-                Research Information
-            </h3>
+        <h3>About this research</h3>
 
-
-            {% if post.abstract %}
-
-                <div class="research-item">
-
-                    <strong>Abstract:</strong>
-
-                    <div style="margin-top: 5px; white-space: pre-wrap;">
-                        {{ post.abstract }}
-                    </div>
-
+        {% if post.abstract %}
+            <div class="research-item">
+                <div style="white-space: pre-wrap; line-height: 1.7;">
+                    {{ post.abstract }}
                 </div>
+            </div>
+        {% endif %}
 
-            {% endif %}
+        {% if post.research_file %}
+            <div class="research-item" style="margin-top: 20px;">
 
-
-            {% if post.research_authors %}
-
-                <div class="research-item">
-                    <strong>Authors:</strong>
-                    {{ post.research_authors }}
-                </div>
-
-            {% endif %}
-
-
-            {% if post.journal %}
-
-                <div class="research-item">
-                    <strong>Journal:</strong>
-                    {{ post.journal }}
-                </div>
-
-            {% endif %}
-
-
-            {% if post.publication_year %}
-
-                <div class="research-item">
-                    <strong>Publication Year:</strong>
-                    {{ post.publication_year }}
-                </div>
-
-            {% endif %}
-
-
-            {% if post.doi %}
-
-                <div class="research-item">
-                    <strong>DOI:</strong>
-                    {{ post.doi }}
-                </div>
-
-            {% endif %}
-
-
-            {% if post.external_link %}
-
-                <div class="research-item">
-
-                    <strong>External Link:</strong>
-
-                    <a
-                        href="{{ post.external_link }}"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="research-link"
-                    >
-                        View Research
-                    </a>
-
-                </div>
-
-            {% endif %}
-
-
-            {% if post.research_file %}
-
-                <div class="research-item">
-
-                    <strong>Research File:</strong>
-
-                    <a
-                        href="{{ url_for('static', filename='uploads/' + post.research_file) }}"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="research-link"
-                    >
-                        View / Download PDF
-                    </a>
-
-                </div>
-
-            {% endif %}
-
-        </div>
-
-    {% endif %}
-
-
-    <!-- =====================================================
-         POST ACTIONS
-         ===================================================== -->
-
-    <div class="post-actions">
-
-        <form
-            action="{{ url_for('like', post_id=post.id) }}"
-            method="POST"
-            class="like-form"
-        >
-
-            <button
-                type="submit"
-                class="action-button"
-            >
-                ❤️ Like
-            </button>
-
-        </form>
-
-
-        {% if current_user.is_authenticated and current_user.id == post.author_id %}
-
-            <a
-                href="{{ url_for('edit', id=post.id) }}"
-                class="action-button"
-            >
-                ✏️ Edit
-            </a>
-
-
-            <form
-                action="{{ url_for('delete', id=post.id) }}"
-                method="POST"
-                class="delete-form"
-                onsubmit="return confirm('Are you sure you want to delete this post?');"
-            >
-
-                <button
-                    type="submit"
+                <a
+                    href="{{ url_for('static', filename='uploads/' + post.research_file) }}"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     class="action-button"
                 >
-                    🗑️ Delete
-                </button>
+                    📄 View / Download Research PDF
+                </a>
 
-            </form>
-
+            </div>
         {% endif %}
 
     </div>
+
+{% endif %}
 
 
     <!-- =====================================================

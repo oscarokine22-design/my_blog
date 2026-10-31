@@ -7,7 +7,6 @@ Create Post - MyBlog
 {% block content %}
 
 <style>
-
     .create-page {
         max-width: 900px;
         margin: 40px auto;
@@ -264,7 +263,6 @@ Create Post - MyBlog
     }
 
     @media (max-width: 600px) {
-
         .create-page {
             margin: 20px auto;
             padding: 0 12px 40px;
@@ -289,29 +287,21 @@ Create Post - MyBlog
         .submit-button {
             width: 100%;
         }
-
     }
-
 </style>
-
 
 <div class="create-page">
 
     <div class="create-card">
 
         <div class="create-header">
-
-            <h1>
-                Create a New Post
-            </h1>
+            <h1>Create a New Post</h1>
 
             <p>
-                Share your thoughts, stories, pictures, videos or research
+                Share a regular post or publish a research article
                 with the MyBlog community.
             </p>
-
         </div>
-
 
         <form
             method="POST"
@@ -323,10 +313,7 @@ Create Post - MyBlog
             <!-- TITLE -->
 
             <div class="form-group">
-
-                <label for="title">
-                    Title
-                </label>
+                <label for="title">Title</label>
 
                 <input
                     type="text"
@@ -335,203 +322,68 @@ Create Post - MyBlog
                     placeholder="Enter your post title"
                     required
                 >
-
             </div>
 
 
             <!-- CATEGORY -->
 
             <div class="form-group">
-
-                <label for="category">
-                    Category
-                </label>
+                <label for="category">Category</label>
 
                 <select
                     id="category"
                     name="category"
                 >
-
-                    <option value="">
-                        No Category
-                    </option>
-
-                    <option value="Technology">
-                        Technology
-                    </option>
-
-                    <option value="Education">
-                        Education
-                    </option>
-
-                    <option value="Psychology">
-                        Psychology
-                    </option>
-
-                    <option value="Lifestyle">
-                        Lifestyle
-                    </option>
-
-                    <option value="Entertainment">
-                        Entertainment
-                    </option>
-
-                    <option value="News">
-                        News
-                    </option>
-
-                    <option value="Personal">
-                        Personal
-                    </option>
-
-                    <option value="Other">
-                        Other
-                    </option>
-
+                    <option value="">No Category</option>
+                    <option value="Technology">Technology</option>
+                    <option value="Education">Education</option>
+                    <option value="Psychology">Psychology</option>
+                    <option value="Lifestyle">Lifestyle</option>
+                    <option value="Entertainment">Entertainment</option>
+                    <option value="News">News</option>
+                    <option value="Personal">Personal</option>
+                    <option value="Other">Other</option>
                 </select>
-
             </div>
 
 
             <!-- POST TYPE -->
 
             <div class="form-group">
-
-                <label for="post_type">
-                    Post Type
-                </label>
+                <label for="post_type">Post Type</label>
 
                 <select
                     id="post_type"
                     name="post_type"
                 >
-
-                    <option value="regular">
-                        Regular Post
-                    </option>
-
-                    <option value="research">
-                        Research Article
-                    </option>
-
+                    <option value="regular">Regular Post</option>
+                    <option value="research">Research Article</option>
                 </select>
-
             </div>
 
 
-            <!-- RESEARCH FIELDS -->
+            <!-- RESEARCH ARTICLE FIELDS -->
 
             <div
                 class="research-box"
                 id="research-fields"
             >
 
-                <h3>
-                    Research Article Information
-                </h3>
-
+                <h3>Research Article</h3>
 
                 <div class="form-group">
-
-                    <label for="abstract">
-                        Abstract
-                    </label>
+                    <label for="abstract">Short Summary</label>
 
                     <textarea
                         id="abstract"
                         name="abstract"
                         rows="6"
-                        placeholder="Enter the research abstract..."
+                        placeholder="Briefly explain what this research is about..."
                     ></textarea>
-
                 </div>
 
-
                 <div class="form-group">
-
-                    <label for="research_authors">
-                        Authors
-                    </label>
-
-                    <input
-                        type="text"
-                        id="research_authors"
-                        name="research_authors"
-                        placeholder="Author names"
-                    >
-
-                </div>
-
-
-                <div class="form-group">
-
-                    <label for="journal">
-                        Journal
-                    </label>
-
-                    <input
-                        type="text"
-                        id="journal"
-                        name="journal"
-                        placeholder="Journal name"
-                    >
-
-                </div>
-
-
-                <div class="form-group">
-
-                    <label for="publication_year">
-                        Publication Year
-                    </label>
-
-                    <input
-                        type="text"
-                        id="publication_year"
-                        name="publication_year"
-                        placeholder="e.g. 2026"
-                    >
-
-                </div>
-
-
-                <div class="form-group">
-
-                    <label for="doi">
-                        DOI
-                    </label>
-
-                    <input
-                        type="text"
-                        id="doi"
-                        name="doi"
-                        placeholder="DOI"
-                    >
-
-                </div>
-
-
-                <div class="form-group">
-
-                    <label for="external_link">
-                        External Link
-                    </label>
-
-                    <input
-                        type="url"
-                        id="external_link"
-                        name="external_link"
-                        placeholder="https://..."
-                    >
-
-                </div>
-
-
-                <div class="form-group">
-
-                    <label for="research_file">
-                        Research PDF
-                    </label>
+                    <label for="research_file">Research PDF</label>
 
                     <input
                         type="file"
@@ -540,66 +392,66 @@ Create Post - MyBlog
                         accept=".pdf,application/pdf"
                         class="file-input"
                     >
+                </div>
+
+            </div>
+
+
+            <!-- REGULAR POST CONTENT EDITOR -->
+
+            <div id="regular-content-editor">
+
+                <h2 class="editor-title">Post Content</h2>
+
+                <p class="editor-description">
+                    Add text, images and videos in any order you want.
+                    You can move each block up or down.
+                </p>
+
+                <div id="blocks-container">
+
+                    <div
+                        class="empty-editor"
+                        id="empty-editor"
+                    >
+                        Start building your post by adding a text,
+                        image or video block.
+                    </div>
+
+                </div>
+
+
+                <!-- ADD CONTENT BUTTONS -->
+
+                <div class="add-block-buttons">
+
+                    <button
+                        type="button"
+                        id="add-text-button"
+                    >
+                        + Add Text
+                    </button>
+
+                    <button
+                        type="button"
+                        id="add-image-button"
+                    >
+                        + Add Image
+                    </button>
+
+                    <button
+                        type="button"
+                        id="add-video-button"
+                    >
+                        + Add Video
+                    </button>
 
                 </div>
 
             </div>
 
 
-            <!-- CONTENT EDITOR -->
-
-            <h2 class="editor-title">
-                Post Content
-            </h2>
-
-            <p class="editor-description">
-                Add text, images and videos in any order you want.
-                You can move each block up or down.
-            </p>
-
-
-            <div id="blocks-container">
-
-                <div
-                    class="empty-editor"
-                    id="empty-editor"
-                >
-                    Start building your post by adding a text,
-                    image or video block.
-                </div>
-
-            </div>
-
-
-            <!-- ADD BUTTONS -->
-
-            <div class="add-block-buttons">
-
-                <button
-                    type="button"
-                    id="add-text-button"
-                >
-                    + Add Text
-                </button>
-
-                <button
-                    type="button"
-                    id="add-image-button"
-                >
-                    + Add Image
-                </button>
-
-                <button
-                    type="button"
-                    id="add-video-button"
-                >
-                    + Add Video
-                </button>
-
-            </div>
-
-
-            <!-- SUBMIT -->
+            <!-- SUBMIT BUTTON -->
 
             <div class="submit-area">
 
@@ -618,254 +470,154 @@ Create Post - MyBlog
 
 </div>
 
-
 <script>
-
 (function () {
 
     "use strict";
 
-
     const container =
-        document.getElementById(
-            "blocks-container"
-        );
+        document.getElementById("blocks-container");
 
     const emptyEditor =
-        document.getElementById(
-            "empty-editor"
-        );
+        document.getElementById("empty-editor");
 
     const form =
-        document.getElementById(
-            "post-form"
-        );
+        document.getElementById("post-form");
 
     const postType =
-        document.getElementById(
-            "post_type"
-        );
+        document.getElementById("post_type");
 
     const researchFields =
-        document.getElementById(
-            "research-fields"
-        );
+        document.getElementById("research-fields");
+
+    const regularEditor =
+        document.getElementById("regular-content-editor");
 
     const addTextButton =
-        document.getElementById(
-            "add-text-button"
-        );
+        document.getElementById("add-text-button");
 
     const addImageButton =
-        document.getElementById(
-            "add-image-button"
-        );
+        document.getElementById("add-image-button");
 
     const addVideoButton =
-        document.getElementById(
-            "add-video-button"
-        );
+        document.getElementById("add-video-button");
 
 
-    /* =========================================================
-       EMPTY MESSAGE
-       ========================================================= */
+    // Update the empty editor message.
 
     function updateEmptyMessage() {
 
         const blocks =
-            container.querySelectorAll(
-                ".block"
-            );
+            container.querySelectorAll(".block");
 
-        if (blocks.length === 0) {
-
-            emptyEditor.style.display =
-                "block";
-
-        } else {
-
-            emptyEditor.style.display =
-                "none";
-
-        }
-
+        emptyEditor.style.display =
+            blocks.length === 0 ? "block" : "none";
     }
 
 
-    /* =========================================================
-       BLOCK LABEL
-       ========================================================= */
+    // Get the label for each block.
 
     function getBlockLabel(type) {
 
         if (type === "text") {
-
             return "📝 Text";
-
         }
 
         if (type === "image") {
-
             return "🖼️ Image";
-
         }
 
         if (type === "video") {
-
             return "🎥 Video";
-
         }
 
         return "Content";
-
     }
 
 
-    /* =========================================================
-       RENUMBER FILE INPUTS
-       ========================================================= */
+    // Keep uploaded file names in the correct order.
 
     function renumberFiles() {
 
         const blocks =
-            container.querySelectorAll(
-                ".block"
-            );
+            container.querySelectorAll(".block");
 
+        blocks.forEach(function (block, index) {
 
-        blocks.forEach(
-            function (block, index) {
+            const fileInput =
+                block.querySelector(
+                    'input[type="file"].block-file'
+                );
 
-                const fileInput =
-                    block.querySelector(
-                        'input[type="file"].block-file'
-                    );
-
-
-                if (fileInput) {
-
-                    fileInput.name =
-                        "block_file_" + index;
-
-                }
-
+            if (fileInput) {
+                fileInput.name = "block_file_" + index;
             }
-        );
 
+        });
     }
 
 
-    /* =========================================================
-       IMAGE PREVIEW
-       ========================================================= */
+    // Preview an image before publishing.
 
     function previewImage(input) {
 
-        const block =
-            input.closest(".block");
+        const block = input.closest(".block");
 
         const preview =
-            block.querySelector(
-                ".media-preview"
-            );
+            block.querySelector(".media-preview");
 
         preview.innerHTML = "";
 
+        if (input.files && input.files.length > 0) {
 
-        if (
-            input.files &&
-            input.files.length > 0
-        ) {
-
-            const file =
-                input.files[0];
+            const file = input.files[0];
 
             const image =
-                document.createElement(
-                    "img"
-                );
+                document.createElement("img");
 
-            image.src =
-                URL.createObjectURL(
-                    file
-                );
+            image.src = URL.createObjectURL(file);
+            image.alt = "Image preview";
 
-            image.alt =
-                "Image preview";
-
-            preview.appendChild(
-                image
-            );
-
+            preview.appendChild(image);
         }
-
     }
 
 
-    /* =========================================================
-       VIDEO PREVIEW
-       ========================================================= */
+    // Preview a video before publishing.
 
     function previewVideo(input) {
 
-        const block =
-            input.closest(".block");
+        const block = input.closest(".block");
 
         const preview =
-            block.querySelector(
-                ".media-preview"
-            );
+            block.querySelector(".media-preview");
 
         preview.innerHTML = "";
 
+        if (input.files && input.files.length > 0) {
 
-        if (
-            input.files &&
-            input.files.length > 0
-        ) {
-
-            const file =
-                input.files[0];
+            const file = input.files[0];
 
             const video =
-                document.createElement(
-                    "video"
-                );
+                document.createElement("video");
 
             video.controls = true;
+            video.src = URL.createObjectURL(file);
 
-            video.src =
-                URL.createObjectURL(
-                    file
-                );
-
-            preview.appendChild(
-                video
-            );
-
+            preview.appendChild(video);
         }
-
     }
 
 
-    /* =========================================================
-       CREATE BLOCK
-       ========================================================= */
+    // Create a new text, image or video block.
 
     function createBlock(type) {
 
         const block =
-            document.createElement(
-                "div"
-            );
+            document.createElement("div");
 
-        block.className =
-            "block";
-
-        block.dataset.type =
-            type;
-
+        block.className = "block";
+        block.dataset.type = type;
 
         block.innerHTML = `
 
@@ -905,7 +657,6 @@ Create Post - MyBlog
 
             </div>
 
-
             <div class="block-body">
 
                 <input
@@ -917,19 +668,14 @@ Create Post - MyBlog
                 <div class="block-content-area"></div>
 
             </div>
-
         `;
 
 
         const contentArea =
-            block.querySelector(
-                ".block-content-area"
-            );
+            block.querySelector(".block-content-area");
 
 
-        /* =====================================================
-           TEXT
-           ===================================================== */
+        // TEXT BLOCK
 
         if (type === "text") {
 
@@ -942,13 +688,10 @@ Create Post - MyBlog
                 ></textarea>
 
             `;
-
         }
 
 
-        /* =====================================================
-           IMAGE
-           ===================================================== */
+        // IMAGE BLOCK
 
         if (type === "image") {
 
@@ -975,30 +718,19 @@ Create Post - MyBlog
 
             `;
 
-
             const fileInput =
-                contentArea.querySelector(
-                    ".block-file"
-                );
-
+                contentArea.querySelector(".block-file");
 
             fileInput.addEventListener(
                 "change",
                 function () {
-
-                    previewImage(
-                        fileInput
-                    );
-
+                    previewImage(fileInput);
                 }
             );
-
         }
 
 
-        /* =====================================================
-           VIDEO
-           ===================================================== */
+        // VIDEO BLOCK
 
         if (type === "video") {
 
@@ -1025,196 +757,123 @@ Create Post - MyBlog
 
             `;
 
-
             const fileInput =
-                contentArea.querySelector(
-                    ".block-file"
-                );
-
+                contentArea.querySelector(".block-file");
 
             fileInput.addEventListener(
                 "change",
                 function () {
-
-                    previewVideo(
-                        fileInput
-                    );
-
+                    previewVideo(fileInput);
                 }
             );
-
         }
 
 
-        container.appendChild(
-            block
-        );
+        container.appendChild(block);
 
 
-        /* =====================================================
-           DELETE
-           ===================================================== */
+        // DELETE BLOCK
 
-        block
-            .querySelector(
-                ".delete-btn"
-            )
-            .addEventListener(
-                "click",
-                function () {
+        block.querySelector(".delete-btn")
+            .addEventListener("click", function () {
 
-                    block.remove();
+                block.remove();
 
-                    renumberFiles();
+                renumberFiles();
+                updateEmptyMessage();
 
-                    updateEmptyMessage();
+            });
 
+
+        // MOVE BLOCK UP
+
+        block.querySelector(".move-up-btn")
+            .addEventListener("click", function () {
+
+                const previous =
+                    block.previousElementSibling;
+
+                if (
+                    previous &&
+                    previous.classList.contains("block")
+                ) {
+                    container.insertBefore(block, previous);
                 }
-            );
+
+                renumberFiles();
+
+            });
 
 
-        /* =====================================================
-           MOVE UP
-           ===================================================== */
+        // MOVE BLOCK DOWN
 
-        block
-            .querySelector(
-                ".move-up-btn"
-            )
-            .addEventListener(
-                "click",
-                function () {
+        block.querySelector(".move-down-btn")
+            .addEventListener("click", function () {
 
-                    const previous =
-                        block.previousElementSibling;
+                const next =
+                    block.nextElementSibling;
 
-
-                    if (
-                        previous &&
-                        previous.classList.contains(
-                            "block"
-                        )
-                    ) {
-
-                        container.insertBefore(
-                            block,
-                            previous
-                        );
-
-                    }
-
-
-                    renumberFiles();
-
+                if (
+                    next &&
+                    next.classList.contains("block")
+                ) {
+                    container.insertBefore(next, block);
                 }
-            );
 
+                renumberFiles();
 
-        /* =====================================================
-           MOVE DOWN
-           ===================================================== */
-
-        block
-            .querySelector(
-                ".move-down-btn"
-            )
-            .addEventListener(
-                "click",
-                function () {
-
-                    const next =
-                        block.nextElementSibling;
-
-
-                    if (
-                        next &&
-                        next.classList.contains(
-                            "block"
-                        )
-                    ) {
-
-                        container.insertBefore(
-                            next,
-                            block
-                        );
-
-                    }
-
-
-                    renumberFiles();
-
-                }
-            );
+            });
 
 
         renumberFiles();
-
         updateEmptyMessage();
 
     }
 
 
-    /* =========================================================
-       ADD BUTTONS
-       ========================================================= */
+    // ADD BUTTON EVENTS
 
-    addTextButton.addEventListener(
-        "click",
-        function () {
+    addTextButton.addEventListener("click", function () {
+        createBlock("text");
+    });
 
-            createBlock(
-                "text"
-            );
+    addImageButton.addEventListener("click", function () {
+        createBlock("image");
+    });
 
-        }
-    );
+    addVideoButton.addEventListener("click", function () {
+        createBlock("video");
+    });
 
-
-    addImageButton.addEventListener(
-        "click",
-        function () {
-
-            createBlock(
-                "image"
-            );
-
-        }
-    );
-
-
-    addVideoButton.addEventListener(
-        "click",
-        function () {
-
-            createBlock(
-                "video"
-            );
-
-        }
-    );
-
-
-    /* =========================================================
-       RESEARCH TOGGLE
-       ========================================================= */
+        // SHOW OR HIDE FIELDS BASED ON POST TYPE
 
     function updateResearchFields() {
 
-        if (
-            postType.value ===
-            "research"
-        ) {
+        const isResearch =
+            postType.value === "research";
 
-            researchFields.style.display =
-                "block";
+        researchFields.style.display =
+            isResearch ? "block" : "none";
 
-        } else {
+        regularEditor.style.display =
+            isResearch ? "none" : "block";
 
-            researchFields.style.display =
-                "none";
+        // Disable regular-post fields when publishing research.
+        // This prevents hidden required fields from blocking submission.
 
-        }
+        regularEditor
+            .querySelectorAll("input, textarea, button")
+            .forEach(function (element) {
 
+                element.disabled = isResearch;
+
+            });
+
+        document.getElementById("abstract").required =
+            isResearch;
+
+        document.getElementById("research_file").required =
+            isResearch;
     }
 
 
@@ -1223,123 +882,141 @@ Create Post - MyBlog
         updateResearchFields
     );
 
-
     updateResearchFields();
 
 
-    /* =========================================================
-       FORM VALIDATION
-       ========================================================= */
+    // FORM VALIDATION
 
-    form.addEventListener(
-        "submit",
-        function (event) {
+    form.addEventListener("submit", function (event) {
 
-            const blocks =
-                container.querySelectorAll(
-                    ".block"
-                );
+        const blocks =
+            container.querySelectorAll(".block");
 
 
-            if (blocks.length === 0) {
+        // RESEARCH ARTICLE VALIDATION
+
+        if (postType.value === "research") {
+
+            const summary =
+                document.getElementById("abstract").value.trim();
+
+            const pdf =
+                document.getElementById("research_file");
+
+            if (!summary) {
 
                 event.preventDefault();
 
                 alert(
-                    "Please add at least one content block."
+                    "Please enter a short summary of the research."
                 );
 
                 return;
-
             }
 
-
-            /*
-             * Make absolutely sure file names match
-             * the final block positions immediately
-             * before submitting.
-             */
-
-            renumberFiles();
-
-
-            let valid = true;
-
-
-            blocks.forEach(
-                function (block) {
-
-                    const type =
-                        block.dataset.type;
-
-
-                    if (
-                        type === "image" ||
-                        type === "video"
-                    ) {
-
-                        const fileInput =
-                            block.querySelector(
-                                ".block-file"
-                            );
-
-
-                        if (
-                            !fileInput ||
-                            !fileInput.files ||
-                            fileInput.files.length === 0
-                        ) {
-
-                            valid = false;
-
-                        }
-
-                    }
-
-
-                    if (type === "text") {
-
-                        const textarea =
-                            block.querySelector(
-                                "textarea"
-                            );
-
-
-                        if (
-                            !textarea ||
-                            !textarea.value.trim()
-                        ) {
-
-                            valid = false;
-
-                        }
-
-                    }
-
-                }
-            );
-
-
-            if (!valid) {
+            if (!pdf.files || pdf.files.length === 0) {
 
                 event.preventDefault();
 
                 alert(
-                    "Please complete all content blocks before publishing."
+                    "Please upload the full research PDF."
                 );
 
+                return;
             }
 
+            const selectedFile = pdf.files[0];
+
+            if (!selectedFile.name.toLowerCase().endsWith(".pdf")) {
+
+                event.preventDefault();
+
+                alert(
+                    "Please select a PDF file."
+                );
+
+                return;
+            }
+
+            return;
         }
-    );
 
 
-    /* =========================================================
-       INITIAL STATE
-       ========================================================= */
+        // REGULAR POST VALIDATION
+
+        if (blocks.length === 0) {
+
+            event.preventDefault();
+
+            alert(
+                "Please add at least one content block."
+            );
+
+            return;
+        }
+
+
+        // Update file names before submission.
+
+        renumberFiles();
+
+        let valid = true;
+
+        blocks.forEach(function (block) {
+
+            const type = block.dataset.type;
+
+
+            // Check image and video uploads.
+
+            if (type === "image" || type === "video") {
+
+                const fileInput =
+                    block.querySelector(".block-file");
+
+                if (
+                    !fileInput ||
+                    !fileInput.files ||
+                    fileInput.files.length === 0
+                ) {
+                    valid = false;
+                }
+            }
+
+
+            // Check text blocks.
+
+            if (type === "text") {
+
+                const textarea =
+                    block.querySelector("textarea");
+
+                if (
+                    !textarea ||
+                    !textarea.value.trim()
+                ) {
+                    valid = false;
+                }
+            }
+
+        });
+
+
+        if (!valid) {
+
+            event.preventDefault();
+
+            alert(
+                "Please complete all content blocks before publishing."
+            );
+        }
+
+    });
+
+
+    // INITIAL STATE
 
     updateEmptyMessage();
-
 
 })();
 

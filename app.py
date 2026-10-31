@@ -206,30 +206,9 @@ def update_database():
 
 
             columns_to_add = {
-
-                "post_type":
-                    "TEXT",
-
-                "abstract":
-                    "TEXT",
-
-                "research_authors":
-                    "TEXT",
-
-                "journal":
-                    "TEXT",
-
-                "publication_year":
-                    "TEXT",
-
-                "doi":
-                    "TEXT",
-
-                "external_link":
-                    "TEXT",
-
-                "research_file":
-                    "TEXT"
+                "post_type": "TEXT",
+                "abstract": "TEXT",
+                "research_file": "TEXT"
             }
 
 
@@ -830,33 +809,9 @@ def create():
         ).strip().lower()
 
 
+        # Research posts need only a short summary and one PDF file.
         abstract = request.form.get(
             "abstract",
-            ""
-        ).strip()
-
-        research_authors = request.form.get(
-            "research_authors",
-            ""
-        ).strip()
-
-        journal = request.form.get(
-            "journal",
-            ""
-        ).strip()
-
-        publication_year = request.form.get(
-            "publication_year",
-            ""
-        ).strip()
-
-        doi = request.form.get(
-            "doi",
-            ""
-        ).strip()
-
-        external_link = request.form.get(
-            "external_link",
             ""
         ).strip()
 
@@ -894,7 +849,9 @@ def create():
             )
 
 
-        if not block_types:
+        # Regular posts need content blocks. Research posts use their
+        # summary and uploaded PDF, so they do not need content blocks.
+        if not block_types and post_type != "research":
 
             flash(
                 "Please add at least one content block.",
@@ -904,6 +861,31 @@ def create():
             return redirect(
                 url_for("create")
             )
+
+        if post_type == "research":
+
+            if not abstract:
+                flash(
+                    "Please write a short summary of your research.",
+                    "error"
+                )
+                return redirect(url_for("create"))
+
+            uploaded_pdf = request.files.get("research_file")
+
+            if not uploaded_pdf or not uploaded_pdf.filename:
+                flash(
+                    "Please upload your research PDF.",
+                    "error"
+                )
+                return redirect(url_for("create"))
+
+            if not allowed_document(uploaded_pdf.filename):
+                flash(
+                    "Only PDF research files are allowed.",
+                    "error"
+                )
+                return redirect(url_for("create"))
 
 
         # ----------------------------------------------------
@@ -922,36 +904,6 @@ def create():
 
             abstract=(
                 abstract
-                if post_type == "research"
-                else None
-            ),
-
-            research_authors=(
-                research_authors
-                if post_type == "research"
-                else None
-            ),
-
-            journal=(
-                journal
-                if post_type == "research"
-                else None
-            ),
-
-            publication_year=(
-                publication_year
-                if post_type == "research"
-                else None
-            ),
-
-            doi=(
-                doi
-                if post_type == "research"
-                else None
-            ),
-
-            external_link=(
-                external_link
                 if post_type == "research"
                 else None
             ),
@@ -1230,7 +1182,7 @@ def create():
         # CHECK CONTENT
         # ----------------------------------------------------
 
-        if position == 0:
+        if position == 0 and post_type != "research":
 
             db.session.rollback()
 
